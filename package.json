@@ -1,0 +1,31 @@
+{
+  "name": "noleaker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome MV3 extension: SOCKS5 proxy manager with leak protection",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "tsc --noEmit && vite build && vite build -c vite.content.config.ts --mode main && vite build -c vite.content.config.ts --mode bridge && vite build -c vite.content.config.ts --mode worker && vite build -c vite.content.config.ts --mode flow",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "snapshot": "node scripts/update-snapshot.mjs",
+    "socks": "node scripts/socks5-server.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "package": "npm run build && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/chrome": "^0.3.4",
+    "@types/node": "^26.6.4",
+    "eslint": "^10.12.0",
+    "prettier": "^3.9.9",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3"
+  }
+}

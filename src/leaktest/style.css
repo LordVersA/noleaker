@@ -1,0 +1,98 @@
+main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 48px 20px;
+}
+header {
+  margin-bottom: 24px;
+}
+h1 {
+  font-size: 15px;
+  letter-spacing: 0.3em;
+}
+header p {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+.card {
+  margin-bottom: 16px;
+}
+.verdict {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.verdict[data-level='ok'] .title {
+  color: var(--ok);
+}
+.verdict[data-level='warn'] .title {
+  color: var(--warn);
+}
+.verdict[data-level='bad'] .title {
+  color: var(--danger);
+}
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+li {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 4px 12px;
+  padding: 12px 0;
+}
+li:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+li:first-child {
+  padding-top: 0;
+}
+li:last-child {
+  padding-bottom: 0;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  background: var(--muted);
+  border-radius: 50%;
+}
+li[data-status='pass'] .dot {
+  background: var(--ok);
+}
+li[data-status='warn'] .dot {
+  background: var(--warn);
+}
+li[data-status='fail'] .dot {
+  background: var(--danger);
+}
+li[data-status='pending'] .dot {
+  background: var(--accent);
+  animation: pulse 1s ease-in-out infinite alternate;
+}
+@keyframes pulse {
+  to {
+    opacity: 0.25;
+  }
+}
+.name {
+  font-weight: 600;
+}
+.detail {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 12px;
+}
+.fix {
+  grid-column: 2;
+  font-size: 12px;
+}
+.fix a {
+  margin-left: 6px;
+}

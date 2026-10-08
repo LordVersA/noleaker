@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>noleaker options</title>
+    <link rel="stylesheet" href="../shared/theme.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="side">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="bm-tile" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#1c2a4a" />
+                <stop offset="1" stop-color="#0b1226" />
+              </linearGradient>
+              <linearGradient id="bm-ink" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#9cc2ff" />
+                <stop offset="0.55" stop-color="#4d8dff" />
+              </linearGradient>
+            </defs>
+            <rect width="100" height="100" rx="22" fill="url(#bm-tile)" />
+            <rect
+              x="0.75"
+              y="0.75"
+              width="98.5"
+              height="98.5"
+              rx="21.5"
+              fill="none"
+              stroke="#2a3a54"
+              stroke-width="1.5"
+            />
+            <g transform="translate(50 50) scale(0.62) translate(-50 -50)">
+              <path
+                d="M50 5 L85 17 V50 C85 71 69 85 50 95 C31 85 15 71 15 50 V17 Z"
+                fill="none"
+                stroke="url(#bm-ink)"
+                stroke-width="10"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M50 38 C50 38 42.5 47 42.5 55 A7.5 7.5 0 0 0 57.5 55 C57.5 47 50 38 50 38 Z"
+                fill="url(#bm-ink)"
+              />
+            </g>
+          </svg>
+          <div>
+            <h1>NOLEAKER</h1>
+            <p class="muted">Settings</p>
+          </div>
+        </div>
+        <nav id="nav" aria-label="Sections">
+          <a href="#proxies" class="active">Proxies</a>
+          <a href="#identity">Identity</a>
+          <a href="#fingerprint">Fingerprint</a>
+          <a href="#protection">Protection</a>
+          <a href="#tools">Tools</a>
+        </nav>
+        <p class="side-foot muted">
+          SOCKS5 · DNS through the proxy · no username or password. Hover or focus a
+          <span class="hint static">?</span> for details.
+        </p>
+      </aside>
+
+      <main>
+        <section class="card">
+          <h2>Privacy mode</h2>
+          <label
+            >Routing
+            <select id="routing-mode">
+              <option value="strict">Strict privacy</option>
+              <option value="compatibility">Compatibility</option>
+            </select></label
+          >
+          <p class="muted">
+            Strict privacy proxies public destinations, blocks local destinations and removes
+            automatic captcha exemptions. Compatibility allows Iran-list, custom and local direct
+            connections, including during proxy failure.
+          </p>
+          <label
+            ><input type="checkbox" id="list-updates" /> Download routing-list candidates in
+            compatibility mode</label
+          >
+          <p class="muted">
+            Updates change which sites connect directly. Their checksum does not independently
+            authenticate the publisher. Each candidate requires manual review and approval. Off by
+            default.
+          </p>
+          <h3>Separate your browsing identity</h3>
+          <p class="muted">
+            Use a dedicated browser profile for private browsing. Switching proxies does not clear
+            cookies, logins, IndexedDB or service workers. This extension does not isolate accounts
+            or erase site data.
+          </p>
+          <p class="muted">
+            Startup scripts, new iframe realms and unsupported workers can still reveal native
+            values. Incognito spoofing requires enabling the extension there. Use an OS firewall or
+            VPN kill switch for enforcement outside browser controls.
+          </p>
+        </section>
+        <section class="group" id="proxies">
+          <header class="group-head">
+            <span class="eyebrow">01</span>
+            <h2 class="group-title">Proxies</h2>
+            <p class="muted">Add the SOCKS5 servers you want to use and pick the active one.</p>
+          </header>
+          <div class="cards">
+            <section class="card list-card">
+              <span class="label">Proxies</span>
+              <table>
+                <tbody id="list"></tbody>
+              </table>
+              <p id="empty" class="muted empty">No proxies yet. Add one below.</p>
+            </section>
+
+            <form id="form" class="card">
+              <h2 id="form-title">Add proxy</h2>
+              <div class="grid">
+                <label class="wide"
+                  ><span class="label">Name</span><input id="name" required placeholder="My server"
+                /></label>
+                <label
+                  ><span class="label">Host</span><input id="host" required placeholder="127.0.0.1"
+                /></label>
+                <label
+                  ><span class="label">Port</span
+                  ><input id="port" type="number" min="1" max="65535" required placeholder="1080"
+                /></label>
+              </div>
+              <p id="error" class="error"></p>
+              <div class="actions">
+                <button type="submit" id="save" class="btn primary">Add</button>
+                <button type="button" id="cancel" class="btn" hidden>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="group" id="identity">
+          <header class="group-head">
+            <span class="eyebrow">02</span>
+            <h2 class="group-title">Identity</h2>
+            <p class="muted">
+              Make the browser look like it is in the proxy’s country, and override anything you
+              want to set by hand.
+            </p>
+          </header>
+          <div class="cards">
+            <section class="card span-2" id="shield-country-card">
+              <h2>Match my exit country</h2>
+              <p class="muted note">
+                Make the browser look like it is in the proxy's country. On by default. These apply
+                only while the proxy is on and healthy, and not on whitelisted sites.
+              </p>
+              <div id="shields-country" class="tiles"></div>
+            </section>
+
+            <section class="card span-2" id="overrides-card">
+              <h2>Overrides</h2>
+              <p class="muted note">
+                Leave a field empty to keep it automatic. A manual value wins over what noleaker
+                picks from the exit country.
+              </p>
+              <div id="override-warnings" class="warning" hidden></div>
+
+              <label class="field">
+                <span class="label">Language mode</span>
+                <select id="locale-mode">
+                  <option value="english">English (recommended)</option>
+                  <option value="country">Match the exit country</option>
+                </select>
+                <span class="muted current"
+                  >English keeps one common language everywhere. Matching the exit country is closer
+                  to a local user, but is a rarer, more identifying combination.</span
+                >
+              </label>
+
+              <label class="field">
+                <span class="label">Timezone</span>
+                <input
+                  id="ov-timezone"
+                  list="tz-list"
+                  placeholder="Europe/Berlin"
+                  autocomplete="off"
+                />
+                <datalist id="tz-list"></datalist>
+                <span class="muted current" id="ov-timezone-current"></span>
+                <span class="error" id="ov-timezone-error"></span>
+              </label>
+
+              <label class="field">
+                <span class="label">Locale</span>
+                <input id="ov-locale" list="locale-list" placeholder="de-DE" autocomplete="off" />
+                <datalist id="locale-list"></datalist>
+                <span class="muted current" id="ov-locale-current"></span>
+                <span class="error" id="ov-locale-error"></span>
+              </label>
+
+              <label class="field">
+                <span class="label">Accept-Language</span>
+                <input id="ov-accept" placeholder="de-DE,de;q=0.9,en;q=0.8" autocomplete="off" />
+                <span class="muted current" id="ov-accept-current"></span>
+                <span class="error" id="ov-accept-error"></span>
+              </label>
+
+              <div class="field">
+                <span class="label">Coordinates</span>
+                <div class="coords">
+                  <input
+                    id="ov-lat"
+                    placeholder="Latitude"
+                    inputmode="decimal"
+                    autocomplete="off"
+                  />
+                  <input
+                    id="ov-lon"
+                    placeholder="Longitude"
+                    inputmode="decimal"
+                    autocomplete="off"
+                  />
+                  <select id="ov-country" aria-label="Use a country's point">
+                    <option value="">Custom point</option>
+                  </select>
+                </div>
+                <span class="muted current" id="ov-coords-current"></span>
+                <span class="error" id="ov-coords-error"></span>
+              </div>
+
+              <div class="actions">
+                <button type="button" id="ov-save" class="btn small primary">Save</button>
+                <button type="button" id="ov-reset" class="btn small">Reset to automatic</button>
+                <span id="ov-msg" class="muted"></span>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="group" id="fingerprint">
+          <header class="group-head">
+            <span class="eyebrow">03</span>
+            <h2 class="group-title">Fingerprint</h2>
+            <p class="muted">
+              Optional noise and spoofing. Off by default because partial spoofing can make you
+              easier to recognise.
+            </p>
+          </header>
+          <div class="cards">
+            <section class="card span-2" id="shield-fingerprint-card">
+              <h2>Fingerprint</h2>
+              <p class="muted note">Off by default. Each switch changes only its own values.</p>
+              <p class="warning">
+                Risk: spoofing part of your fingerprint can make your browser <em>more</em> unique,
+                and sites can detect inconsistent values. Turn on only what you need.
+              </p>
+              <div id="shields-fingerprint" class="tiles"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="group" id="protection">
+          <header class="group-head">
+            <span class="eyebrow">04</span>
+            <h2 class="group-title">Protection and sites</h2>
+            <p class="muted">
+              Hide the extension, unlock Flow, and decide which sites skip spoofing or the proxy.
+            </p>
+          </header>
+          <div class="cards">
+            <section class="card" id="stealth-card">
+              <h2>Stealth mode</h2>
+              <p class="muted note">
+                Off by default. Makes every patched function copy the exact shape of the native one,
+                and removes this extension's frames from the stack of errors that pass through a
+                patch.
+              </p>
+              <label class="fp-row">
+                <div>
+                  <div class="fp-name">
+                    Stealth mode
+                    <button
+                      type="button"
+                      class="hint"
+                      aria-label="More info"
+                      data-tip="Raises the cost of detecting noleaker: patched functions look native and error stacks hide the extension. It does not make it undetectable. Slightly slower, so leave it off unless a site detects the extension."
+                    >
+                      ?
+                    </button>
+                  </div>
+                  <div class="muted">
+                    This raises the cost of detecting noleaker. It does not make it undetectable.
+                  </div>
+                </div>
+                <input type="checkbox" id="stealth" class="switch" />
+              </label>
+            </section>
+
+            <section class="card" id="flow-card">
+              <h2>Google Flow unlock</h2>
+              <p class="muted note">
+                On by default. Not a privacy shield: it works around a regional block of Google
+                Flow. On Flow pages only, it rewrites the country check in Flow's own answers and
+                sends the tab back to Flow if it lands on the "unsupported country" page. It reads a
+                private Google format, so it can stop working when Google changes it.
+              </p>
+              <label class="fp-row">
+                <div>
+                  <div class="fp-name">
+                    Google Flow unlock
+                    <button
+                      type="button"
+                      class="hint"
+                      aria-label="More info"
+                      data-tip="Runs only on flow.google.com and labs.google/fx/tools/flow. With it off, none of its code is loaded in any page. Tabs that are already open need a reload after you change it."
+                    >
+                      ?
+                    </button>
+                  </div>
+                  <div class="muted">
+                    Runs only on flow.google.com and labs.google/fx/tools/flow. Open Flow tabs need
+                    a reload after changing this.
+                  </div>
+                </div>
+                <input type="checkbox" id="flow-unlock" class="switch" />
+              </label>
+            </section>
+
+            <section class="card" id="iran-card">
+              <h2>Direct list</h2>
+              <p class="muted note">
+                These exceptions apply only in Compatibility mode: the Iran-hosted domain list, your
+                extra domains, localhost and private addresses bypass the proxy. Strict privacy
+                ignores both domain lists and blocks local destinations. Compatibility has no
+                blanket <code>.ir</code> bypass.
+              </p>
+              <div class="row">
+                <div class="muted" id="iran-meta">Loading…</div>
+                <button type="button" id="iran-update" class="btn small">Update now</button>
+              </div>
+              <p id="iran-error" class="error"></p>
+              <label>
+                <span class="label">Extra direct domains</span>
+                <textarea
+                  id="extra"
+                  placeholder="example.com&#10;another.org"
+                  spellcheck="false"
+                ></textarea>
+              </label>
+              <div class="actions">
+                <button type="button" id="extra-save" class="btn small primary">Save</button>
+                <span id="extra-msg" class="muted"></span>
+              </div>
+            </section>
+
+            <section class="card" id="whitelist-card">
+              <h2>Spoofing whitelist</h2>
+              <p class="muted note">
+                Timezone and language spoofing is turned off on these sites and their subdomains.
+                They still use the proxy.
+              </p>
+              <textarea id="whitelist" placeholder="example.com" spellcheck="false"></textarea>
+              <div class="actions">
+                <button type="button" id="whitelist-save" class="btn small primary">Save</button>
+                <span id="whitelist-msg" class="muted"></span>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="group" id="tools">
+          <header class="group-head">
+            <span class="eyebrow">05</span>
+            <h2 class="group-title">Tools</h2>
+            <p class="muted">A local log and a backup of your settings.</p>
+          </header>
+          <div class="cards">
+            <section class="card" id="log-card">
+              <h2>Diagnostics</h2>
+              <p class="muted note">
+                A local log of recent events (proxy up/down, list updates, errors). It never leaves
+                your browser and holds no page URLs.
+              </p>
+              <pre id="log" class="log"></pre>
+              <div class="actions">
+                <button type="button" id="log-copy" class="btn small">Copy</button>
+                <button type="button" id="log-clear" class="btn small">Clear</button>
+              </div>
+            </section>
+
+            <section class="card" id="backup-card">
+              <h2>Backup</h2>
+              <p class="muted note">
+                Export your proxies, direct domains and whitelist as a JSON file, or import one.
+                Proxy addresses are included, so keep the file private.
+              </p>
+              <div class="actions">
+                <button type="button" id="export" class="btn small">Export settings</button>
+                <button type="button" id="import" class="btn small">Import settings</button>
+                <input type="file" id="import-file" accept="application/json,.json" hidden />
+              </div>
+              <p id="backup-msg" class="error"></p>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

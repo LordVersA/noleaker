@@ -1,0 +1,451 @@
+/* ---- layout: sticky sidebar + a full-width grid of cards ---- */
+:root {
+  --glow: rgba(77, 141, 255, 0.18);
+  --card-bg: linear-gradient(180deg, rgba(18, 25, 38, 0.72), rgba(12, 17, 24, 0.92));
+}
+.shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+}
+.side {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  height: 100vh;
+  padding: 32px 22px;
+  background: rgba(8, 12, 18, 0.7);
+  border-right: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+}
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.brand-mark {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  filter: drop-shadow(0 6px 16px var(--glow));
+}
+h1 {
+  font-size: 14px;
+  letter-spacing: 0.32em;
+}
+.brand p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+#nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#nav a {
+  position: relative;
+  padding: 9px 14px;
+  color: var(--muted);
+  border-radius: 9px;
+  font-weight: 500;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+#nav a:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+#nav a.active {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+#nav a.active::before {
+  content: '';
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  left: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 12px var(--accent);
+}
+.side-foot {
+  margin: auto 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+main {
+  min-width: 0;
+  padding: 44px clamp(24px, 4vw, 64px) 96px;
+}
+.group {
+  margin-bottom: 56px;
+  scroll-margin-top: 28px;
+}
+.group-head {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.eyebrow {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+}
+.group-title {
+  margin: 4px 0 4px;
+  font-size: 24px;
+  letter-spacing: 0.01em;
+}
+.group-head p {
+  max-width: 70ch;
+  margin: 0;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+  gap: 20px;
+  align-items: start;
+}
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+/* ---- cards ---- */
+.card {
+  margin: 0;
+  padding: 22px 24px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 12px 32px rgba(0, 0, 0, 0.28);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.card:hover {
+  border-color: var(--border-hover);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 16px 40px rgba(0, 0, 0, 0.34);
+}
+h2 {
+  margin-bottom: 14px;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+.card > .note + .tiles,
+.card > .warning + .tiles {
+  margin-top: 4px;
+}
+
+/* ---- toggles in tiles, with a hint bubble ---- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+.tiles .fp-row {
+  height: 100%;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.tiles .fp-row:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+.tiles .fp-row:hover {
+  background: rgba(77, 141, 255, 0.05);
+  border-color: var(--border-hover);
+}
+.fp-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  cursor: pointer;
+}
+.fp-row:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+.fp-row .fp-name {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+}
+.fp-row .muted {
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+.hint {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border-hover);
+  border-radius: 50%;
+  font: 600 10px/1 var(--font);
+  cursor: help;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+}
+.hint.static {
+  display: inline-grid;
+  vertical-align: middle;
+  cursor: default;
+}
+.hint:hover,
+.hint:focus-visible {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  outline: none;
+}
+.hint[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 20;
+  bottom: calc(100% + 10px);
+  left: -10px;
+  width: 280px;
+  padding: 11px 13px;
+  color: var(--text);
+  background: #101a2b;
+  border: 1px solid var(--border-hover);
+  border-radius: 11px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  font: 400 12px/1.55 var(--font);
+  letter-spacing: 0.01em;
+  text-align: left;
+  text-transform: none;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition:
+    opacity 0.15s,
+    transform 0.15s,
+    visibility 0.15s;
+  pointer-events: none;
+}
+.hint[data-tip]:hover::after,
+.hint[data-tip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+/* ---- the rest of the old page, tuned ---- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+tr:not(:last-child) td {
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 12px 6px;
+  vertical-align: middle;
+}
+td:first-child {
+  font-weight: 600;
+}
+td.host {
+  color: var(--muted);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+}
+td.actions-cell {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.empty {
+  margin: 4px 0 0;
+}
+.empty[hidden] {
+  display: none;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 12px;
+}
+.grid .wide {
+  grid-column: 1 / -1;
+}
+.error {
+  min-height: 18px;
+  margin: 10px 0 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.note {
+  margin: -6px 0 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+code {
+  padding: 1px 5px;
+  background: var(--surface-2);
+  border-radius: 5px;
+  font-size: 11px;
+}
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+.card label {
+  display: block;
+}
+.card label.fp-row {
+  display: flex;
+}
+.actions .muted {
+  align-self: center;
+  font-size: 12px;
+}
+#iran-card .error {
+  min-height: 0;
+}
+#iran-card label {
+  margin-top: 12px;
+}
+.warning {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  color: var(--warn);
+  background: rgba(245, 184, 75, 0.08);
+  border: 1px solid rgba(245, 184, 75, 0.25);
+  border-radius: var(--radius);
+  font-size: 12px;
+}
+.log {
+  max-height: 260px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  overflow: auto;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font:
+    11px/1.6 ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.badge {
+  margin-left: 8px;
+  padding: 1px 7px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Overrides: fields flow into columns on wide screens. */
+#overrides-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 0 24px;
+}
+#overrides-card > h2,
+#overrides-card > .note,
+#overrides-card > .warning,
+#overrides-card > .actions {
+  grid-column: 1 / -1;
+}
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+.field .current {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.field .error {
+  display: block;
+  min-height: 0;
+  margin: 2px 0 0;
+}
+.field .error:empty {
+  display: none;
+}
+.coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 8px;
+}
+#override-warnings ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+/* ---- narrow windows: the sidebar becomes a top bar ---- */
+@media (max-width: 880px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .side {
+    position: sticky;
+    z-index: 30;
+    flex-direction: row;
+    gap: 16px;
+    align-items: center;
+    height: auto;
+    padding: 12px 16px;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  #nav {
+    flex-direction: row;
+  }
+  #nav a.active::before,
+  .side-foot {
+    display: none;
+  }
+  main {
+    padding-top: 28px;
+  }
+  .hint[data-tip]::after {
+    width: 230px;
+  }
+}

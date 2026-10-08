@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>noleaker</title>
+    <link rel="stylesheet" href="../shared/theme.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>NOLEAKER</h1>
+      <span class="pill" id="pill"><i></i><span id="status">Off</span></span>
+    </header>
+
+    <section class="card power">
+      <div>
+        <div class="title">Protection</div>
+        <div class="muted" id="power-sub">Proxy is disabled</div>
+      </div>
+      <input type="checkbox" id="toggle" class="switch" aria-label="Toggle proxy" />
+    </section>
+
+    <p id="hint" class="hint"></p>
+
+    <div class="field">
+      <span class="label">Proxy</span>
+      <select id="profile"></select>
+    </div>
+
+    <section class="card exit" id="exit-card" hidden>
+      <div class="exit-head">
+        <span class="label">Exit</span>
+        <button
+          type="button"
+          id="refresh"
+          class="icon-btn"
+          title="Check the exit now"
+          aria-label="Refresh the exit"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path
+              d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4.5h-4.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+      <div id="exit" class="exit-text"></div>
+      <div id="exit-note" class="muted exit-note" aria-live="polite"></div>
+      <label class="auto-row">
+        <div>
+          <div class="auto-title">Check every minute</div>
+          <div class="muted">Follows the exit if the server moves to another country or IP.</div>
+        </div>
+        <input
+          type="checkbox"
+          id="auto-check"
+          class="switch"
+          aria-label="Check the exit every minute"
+        />
+      </label>
+      <div id="override-row" class="field">
+        <span class="label">Country override</span>
+        <select id="override"></select>
+      </div>
+    </section>
+
+    <section class="card site" id="site-card" hidden>
+      <div>
+        <div class="title">Spoof this site</div>
+        <div class="muted host" id="site-host"></div>
+      </div>
+      <input type="checkbox" id="site-toggle" class="switch" aria-label="Spoof this site" />
+    </section>
+
+    <p id="tab-note" class="hint" hidden></p>
+
+    <section class="card audit" id="audit-card">
+      <div class="audit-head">
+        <div class="title">Audit this tab</div>
+        <button type="button" id="audit" class="btn small">Run</button>
+      </div>
+      <p id="audit-msg" class="muted audit-msg"></p>
+      <div id="audit-grid" class="grid" hidden></div>
+      <ul id="audit-detail" class="detail"></ul>
+    </section>
+
+    <footer>
+      <a href="#" id="leaktest">Run leak test</a>
+      <a href="#" id="options">Manage proxies</a>
+    </footer>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

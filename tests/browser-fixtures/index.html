@@ -1,0 +1,139 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>noleaker adversarial privacy fixture</title>
+<script>
+  // First inline script: preserve values before asynchronous extension configuration arrives.
+  window.privacySamples = {
+    firstInline: {
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: navigator.language,
+      languages: Array.from(navigator.languages),
+      cores: navigator.hardwareConcurrency,
+      memory: navigator.deviceMemory,
+    },
+  };
+  const frame = document.createElement('iframe');
+  document.documentElement.append(frame);
+  privacySamples.immediateIframe = {
+    timezone: frame.contentWindow.Intl.DateTimeFormat().resolvedOptions().timeZone,
+    language: frame.contentWindow.navigator.language,
+  };
+  frame.remove();
+</script>
+<h1>Adversarial privacy fixture</h1>
+<p>
+  Results stay in this page. Compare first-inline and iframe reads with the expected exit identity.
+  Strict mode should block unsupported worker APIs. Existing service workers are a separate test.
+</p>
+<button id="test">Test workers and WebRTC</button>
+<button id="geo">Test geolocation (may request browser permission)</button>
+<button id="watch">Start geolocation watch before changing protection</button>
+<button id="stop-watch">Stop watch</button>
+<button id="sw">Test Service Worker registration</button>
+<pre id="results"></pre>
+<script>
+  const output = () =>
+    document.getElementById('results').replaceChildren(
+      ...Object.entries(privacySamples).map(([key, value]) => {
+        const section = document.createElement('div');
+        section.textContent = `${key}: ${JSON.stringify(value, null, 2)}`;
+        return section;
+      }),
+    );
+  const worker = (kind, url, options) => {
+    try {
+      const w = new window[kind](url, options);
+      const port = kind === 'SharedWorker' ? w.port : w;
+      port.onmessage = (e) => {
+        privacySamples[kind + ':' + (options?.type || 'classic')] = e.data;
+        output();
+        if (w.terminate) w.terminate();
+        else port.close();
+      };
+      port.start?.();
+      port.onerror = (e) => {
+        privacySamples[kind] = { error: String(e.message) };
+        output();
+      };
+    } catch (e) {
+      privacySamples[kind + ':' + (options?.type || 'classic')] = {
+        blocked: e.name,
+        message: e.message,
+      };
+    }
+  };
+  document.getElementById('test').onclick = async () => {
+    worker('Worker', './worker.js');
+    worker('Worker', './worker.js', { type: 'module' });
+    worker('SharedWorker', './shared.js');
+    privacySamples.afterConfig = {
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: navigator.language,
+    };
+    try {
+      const pc = new RTCPeerConnection();
+      privacySamples.webrtcPolicy = pc.getConfiguration().iceTransportPolicy;
+      privacySamples.iceCandidates = [];
+      pc.onicecandidate = (event) => {
+        privacySamples.iceCandidates.push(event.candidate?.candidate ?? 'gathering complete');
+        output();
+      };
+      pc.createDataChannel('privacy-test');
+      await pc.setLocalDescription(await pc.createOffer());
+      setTimeout(() => {
+        pc.close();
+        output();
+      }, 5000);
+    } catch (e) {
+      privacySamples.webrtcPolicy = e.name;
+    }
+    output();
+  };
+  document.getElementById('geo').onclick = () =>
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        privacySamples.location = p.toJSON
+          ? p.toJSON()
+          : { latitude: p.coords.latitude, longitude: p.coords.longitude };
+        output();
+      },
+      (e) => {
+        privacySamples.location = { error: e.code, message: e.message };
+        output();
+      },
+    );
+  let watchId;
+  document.getElementById('watch').onclick = () => {
+    if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
+    privacySamples.watch = [];
+    watchId = navigator.geolocation.watchPosition(
+      (p) => {
+        privacySamples.watch.push({
+          time: Date.now(),
+          latitude: p.coords.latitude,
+          longitude: p.coords.longitude,
+        });
+        output();
+      },
+      (e) => {
+        privacySamples.watch.push({ time: Date.now(), error: e.code });
+        output();
+      },
+    );
+  };
+  document.getElementById('stop-watch').onclick = () => {
+    if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
+    watchId = undefined;
+  };
+  document.getElementById('sw').onclick = async () => {
+    try {
+      const r = await navigator.serviceWorker.register('./service.js');
+      privacySamples.serviceWorker = r.scope;
+      await r.unregister();
+    } catch (e) {
+      privacySamples.serviceWorker = { blocked: e.name, message: e.message };
+    }
+    output();
+  };
+  output();
+</script>

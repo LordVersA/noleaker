@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "noleaker",
+  "version": "0.1.0",
+  "description": "SOCKS5 proxy manager with leak protection: timezone, locale, WebRTC and QUIC follow your proxy.",
+  "minimum_chrome_version": "120",
+  "permissions": [
+    "storage",
+    "proxy",
+    "alarms",
+    "privacy",
+    "declarativeNetRequest",
+    "scripting",
+    "webNavigation"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "noleaker",
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "options_page": "options/index.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "match_origin_as_fallback": true,
+      "js": ["content/main.js"],
+      "world": "MAIN"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "match_origin_as_fallback": true,
+      "js": ["content/bridge.js"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>noleaker leak test</title>
+    <link rel="stylesheet" href="../shared/theme.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>NOLEAKER</h1>
+        <p class="muted">Leak test</p>
+      </header>
+
+      <section class="card verdict" id="verdict" data-level="idle">
+        <div>
+          <div class="title" id="verdict-title">Ready</div>
+          <div class="muted" id="verdict-sub"></div>
+        </div>
+        <button type="button" class="btn primary" id="run">Run again</button>
+      </section>
+
+      <section class="card">
+        <ul id="results"></ul>
+      </section>
+      <section class="card">
+        <h2>Effective browser controls</h2>
+        <p class="muted">
+          Read-only browser settings and rule diagnostics. These do not measure network traffic.
+        </p>
+        <button type="button" class="btn" id="read-controls">Read current controls</button>
+        <pre id="controls-output" style="white-space: pre-wrap; overflow-wrap: anywhere"></pre>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

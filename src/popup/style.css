@@ -1,0 +1,250 @@
+body {
+  width: 300px;
+  padding: 16px;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+h1 {
+  font-size: 13px;
+  letter-spacing: 0.28em;
+}
+.pill {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 3px 10px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.pill i {
+  width: 6px;
+  height: 6px;
+  background: var(--muted);
+  border-radius: 50%;
+}
+body[data-level='ok'] .pill {
+  color: var(--ok);
+}
+body[data-level='ok'] .pill i {
+  background: var(--ok);
+}
+body[data-level='warn'] .pill {
+  color: var(--warn);
+}
+body[data-level='warn'] .pill i {
+  background: var(--warn);
+}
+body[data-level='bad'] .pill {
+  color: var(--danger);
+}
+body[data-level='bad'] .pill i {
+  background: var(--danger);
+}
+.power {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.hint {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  color: var(--warn);
+  background: rgba(245, 184, 75, 0.08);
+  border: 1px solid rgba(245, 184, 75, 0.25);
+  border-radius: var(--radius);
+  font-size: 12px;
+}
+body[data-level='ok'] .hint {
+  color: var(--muted);
+  background: var(--surface);
+  border-color: var(--border);
+}
+body[data-level='bad'] .hint {
+  color: var(--danger);
+  background: rgba(255, 92, 108, 0.08);
+  border-color: rgba(255, 92, 108, 0.25);
+}
+.hint:empty {
+  display: none;
+}
+.field {
+  margin-bottom: 12px;
+}
+.exit {
+  margin-bottom: 12px;
+  background: var(--surface);
+}
+.exit .field {
+  margin: 12px 0 0;
+}
+.exit-text {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-line;
+  word-break: break-word;
+}
+footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.site {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.site[hidden] {
+  display: none;
+}
+.host {
+  max-width: 190px;
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audit {
+  margin-bottom: 12px;
+}
+.audit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.audit-msg {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+.audit-msg:empty {
+  display: none;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 10px;
+}
+.grid[hidden] {
+  display: none;
+}
+.chip {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 11px;
+}
+.chip i {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background: var(--muted);
+  border-radius: 50%;
+}
+.chip[data-status='ok'] i {
+  background: var(--ok);
+}
+.chip[data-status='bad'] i {
+  background: var(--danger);
+}
+.chip[data-status='bad'] {
+  border-color: rgba(255, 92, 108, 0.35);
+}
+.chip[data-status='off'],
+.chip[data-status='na'] {
+  color: var(--muted);
+}
+.detail {
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 11px;
+  list-style: none;
+}
+.detail li {
+  margin-top: 4px;
+  color: var(--danger);
+}
+.detail:empty {
+  display: none;
+}
+
+/* ---- exit: refresh button and the "check every minute" row ---- */
+.exit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.exit-head .label {
+  margin-bottom: 0;
+}
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+.icon-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--border-hover);
+}
+.icon-btn:disabled {
+  cursor: progress;
+}
+.icon-btn.spinning svg {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.exit-note {
+  min-height: 16px;
+  margin: 4px 0 10px;
+  font-size: 11.5px;
+}
+.auto-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.auto-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+.auto-row .muted {
+  font-size: 11.5px;
+}
