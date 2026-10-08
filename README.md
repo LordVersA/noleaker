@@ -310,6 +310,24 @@ verification also requires independent packet/DNS/TURN captures, existing-connec
 IPv4/IPv6 and Chrome stable/beta coverage on supported operating systems. Configuration readback
 and an empty ICE result alone do not prove that all network traffic is protected.
 
+## Releases
+
+Pushing a version tag (for example `v0.1.0`) automatically installs locked dependencies, checks
+formatting/lint, builds minified production bundles, runs the full test suite and publishes the
+extension ZIP plus `SHA256SUMS.txt` to GitHub Releases. The tag must match the versions in
+`package.json` and `public/manifest.json`.
+
+After committing and pushing the release changes:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Publishing a release with `gh release create v0.1.0 --verify-tag --generate-notes` also triggers
+asset building. An existing tag can be rebuilt from Actions → Build and release → Run workflow.
+Download the release ZIP, extract it and load the extracted folder using Chrome's **Load unpacked**.
+
 ## Updating the bundled Iran list
 
 `npm run snapshot` regenerates `public/data/iran-domains.json` from the latest upstream release.

@@ -1,0 +1,87 @@
+name: Build and release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing version tag (for example v0.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
+    steps:
+      - name: Check out version tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Validate tag and package versions
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+          const manifest = JSON.parse(readFileSync('public/manifest.json', 'utf8'));
+          const tag = process.env.RELEASE_TAG;
+          if (!/^v\d+\.\d+\.\d+$/.test(tag) || tag !== `v${pkg.version}` || manifest.version !== pkg.version) {
+            throw new Error('Release tag, package.json and manifest.json versions must match.');
+          }
+          JS
+          git show-ref --verify "refs/tags/$RELEASE_TAG"
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Lint and check formatting
+        run: |
+          npm run lint
+          npm run format:check
+
+      - name: Build and package extension
+        run: npm run package
+
+      - name: Run complete test suite against production bundles
+        run: npm test
+
+      - name: Create checksum
+        run: |
+          cd release
+          sha256sum noleaker-*.zip > SHA256SUMS.txt
+
+      - name: Publish release assets with GitHub CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" release/noleaker-*.zip release/SHA256SUMS.txt --clobber
+          else
+            gh release create "$RELEASE_TAG" release/noleaker-*.zip release/SHA256SUMS.txt \
+              --verify-tag --title "noleaker $RELEASE_TAG" --generate-notes
+          fi
