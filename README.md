@@ -5,11 +5,9 @@
 A Chrome (Manifest V3) extension that replaces FoxyProxy and adds leak protection. Add a SOCKS5
 proxy, turn it on from the popup, and the browser looks like it is in the proxy's country:
 timezone, language, WebRTC and QUIC are handled. No account, no license, no servers of our own.
-See [DESIGN.md](DESIGN.md) for the decisions and [PRIVACY.md](PRIVACY.md) for what it sends.
-
-See [Privacy hardening plan](docs/PRIVACY-HARDENING.md) for the reviewed gaps, proposed strict
-privacy mode, phased fixes and release verification criteria. Core source hardening is implemented; remaining boundaries are recorded in [coverage decisions](docs/PRIVACY-COVERAGE.md);
-[Focused Chromium regular/incognito checks](docs/CHROMIUM-PRIVACY-RESULTS.md) passed after two live guard fixes; independent packet capture and the broader release matrix remain pending.
+Core privacy hardening is implemented. Focused Chromium regular/incognito checks passed;
+independent packet capture and the broader browser release matrix remain pending. The privacy
+modes, protections and known limitations are described below.
 
 ## Privacy modes and current assurance
 
@@ -72,6 +70,8 @@ npm run package      # build and zip to release/noleaker-<version>.zip
 Load in Chrome: open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and
 choose the `dist/` folder. After a rebuild, click the reload icon on the extension card and reload
 open tabs (content scripts only load with a page).
+
+Production builds target Chrome 120 and minify JavaScript/CSS without source maps. `npm run dev` builds readable bundles with source maps and watches all five build entries; stop it before running a production build or packaging.
 
 ## Using it
 
@@ -183,9 +183,7 @@ event names. They shake hands once, at document start and before any script of t
 (the only fixed name, `__nl__`, is dispatched there and both sides stop listening to it after), and
 everything later uses event names the page-side script invents for each page load. Nothing is added
 to the DOM or to `window`, and the worker prelude removes its start-up data before the page's worker
-code runs. This is decided before your settings are known, so it cannot depend on the switch. It
-replaces the per-install secret idea in `upgrade.md`: a name that changes on every page load needs
-no stored secret.
+code runs. This is decided before your settings are known, so it cannot depend on the switch. A name that changes on every page load needs no stored secret.
 
 What stealth does not hide:
 
@@ -210,7 +208,7 @@ exit country, field by field:
   (`de-DE` becomes `de-DE,de;q=0.9,en;q=0.8`).
 - `navigator.language` and `navigator.languages` come from the `Accept-Language` value, the default
   `Intl` locale from the locale.
-- **Language mode:** "English (recommended)" keeps `en-US` everywhere, as in DESIGN.md decision 4.
+- **Language mode:** "English (recommended)" keeps `en-US` everywhere.
   "Match the exit country" uses the country's own locale and `Accept-Language`. It looks more local,
   but it is a rarer combination. Both modes still obey manual overrides.
 - Overrides never replace detection: spoofing still runs only while the proxy is on, healthy and the
@@ -292,8 +290,25 @@ features that Google also checks on its servers by your IP (the proxy's exit cou
 
 ## Testing
 
-See [docs/TESTING.md](docs/TESTING.md) for the automated suite, the local SOCKS5 server and the
-manual release matrix (Chrome stable and beta, Windows and macOS).
+Build before running tests so bundled-script checks use the current output:
+
+```sh
+npm run lint
+npm run format:check
+npm run build
+npm test
+```
+
+The SOCKS integration tests require permission to open localhost listeners. `npm run socks` starts
+a local test proxy on `127.0.0.1:1080`; it logs CONNECT requests so you can inspect domain-name
+forwarding. Strict mode blocks local page destinations, so use a public test page through the proxy
+when checking site protections.
+
+For manual verification, use a disposable browser profile and check regular/incognito behavior,
+proxy outage and recovery, local-address blocking, startup, frames and workers. Complete release
+verification also requires independent packet/DNS/TURN captures, existing-connection checks,
+IPv4/IPv6 and Chrome stable/beta coverage on supported operating systems. Configuration readback
+and an empty ICE result alone do not prove that all network traffic is protected.
 
 ## Updating the bundled Iran list
 
@@ -303,7 +318,4 @@ manual release matrix (Chrome stable and beta, Windows and macOS).
 
 The mark is a shield outline with a droplet (`src/shared/brand.ts`). `npm run icons` redraws the
 packaged PNG icons in `public/icons/` from the same shapes, the toolbar icon is drawn from them at
-runtime (gray off, blue on, red on error), and the options page uses them inline. The original
-brand sheet is in `docs/brand/`.
-
-Production builds target Chrome 120 and minify JavaScript/CSS without source maps. `npm run dev` builds readable bundles with source maps and watches all five build entries; stop it before running a production build or packaging.
+runtime (gray off, blue on, red on error), and the options page uses them inline.
