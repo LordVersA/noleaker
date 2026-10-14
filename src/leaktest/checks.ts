@@ -14,6 +14,7 @@ import {
   type PageSample,
 } from './analyze';
 import { readProxyControl } from '@platform/control';
+import { getEnv, PRIVATE_WARNING, RFP_NOTE, setEnv } from '../shared/browser-env';
 
 export interface CheckDef {
   id: string;
@@ -281,6 +282,37 @@ async function checkRules(state: State): Promise<CheckResult> {
   };
 }
 
+/** Firefox: private windows bypass noleaker without access; RFP replaces the fingerprint shields. */
+async function checkBrowserEnv(): Promise<CheckResult[]> {
+  const privateAccess = await chrome.extension.isAllowedIncognitoAccess();
+  await setEnv({ privateAccess });
+  const env = await getEnv();
+  return [
+    privateAccess
+      ? {
+          id: 'private',
+          title: 'Private windows',
+          status: 'pass',
+          detail: 'noleaker runs in private windows too.',
+        }
+      : {
+          id: 'private',
+          title: 'Private windows',
+          status: 'warn',
+          detail: PRIVATE_WARNING,
+          fix: { text: 'about:addons → noleaker → Run in Private Windows → Allow.' },
+        },
+    {
+      id: 'rfp',
+      title: 'Firefox resistFingerprinting',
+      status: env.rfp ? 'warn' : 'skip',
+      detail: env.rfp
+        ? RFP_NOTE
+        : 'Off. noleaker fingerprint shields apply as set in Options. (Fingerprinting Protection, FPP, cannot be read by extensions; with it on, canvas and audio noise may stack.)',
+    },
+  ];
+}
+
 function checkKillSwitch(state: State): CheckResult {
   const base = { id: 'killswitch', title: 'Kill switch' };
   return state.killSwitchActive
@@ -435,6 +467,7 @@ export async function runAll(state: State, onResult: (r: CheckResult) => void): 
       .then(onResult);
 
   onResult(checkKillSwitch(state));
+  if (__BROWSER__ === 'firefox') (await checkBrowserEnv()).forEach(onResult);
   await Promise.all([
     guard('ip', 'Public IP matches the exit', () => checkIp(state)),
     guard('config', 'Proxy and DNS configuration', checkConfig),

@@ -1,4 +1,6 @@
-import { iconView } from '../../shared/badge';
+import { BADGE_COLORS, iconView, type IconView } from '../../shared/badge';
+import { getEnv, PRIVATE_WARNING, type BrowserEnv } from '../../shared/browser-env';
+import type { State } from '../../shared/types';
 import { activeProfile } from '../../shared/profiles';
 import { directLookup, NO_DIRECT, type DirectLookup } from '../../shared/route';
 import { getState } from '../../shared/storage';
@@ -56,5 +58,16 @@ export async function syncProxy(): Promise<void> {
     direct: strict ? NO_DIRECT : lookup,
     guarded,
   });
-  await setStatusIcon(iconView(state));
+  await setStatusIcon(withPrivateWarning(iconView(state), state, await getEnv()));
+}
+
+/** The toolbar icon, with a warning badge while the proxy is on and private windows are not covered. */
+export function withPrivateWarning(view: IconView, state: State, env: BrowserEnv): IconView {
+  if (!state.enabled || env.privateAccess || view.status !== 'on') return view;
+  return {
+    ...view,
+    badge: 'PW!',
+    badgeColor: BADGE_COLORS.wait,
+    title: `${view.title}\n${PRIVATE_WARNING}`,
+  };
 }

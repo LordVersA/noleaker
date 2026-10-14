@@ -453,3 +453,7 @@ code {
     width: 230px;
   }
 }
+
+.warning[hidden] {
+  display: none;
+}

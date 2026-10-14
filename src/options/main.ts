@@ -9,6 +9,7 @@ import { autoIdentity } from '../shared/identity';
 import { checkOverrides } from '../shared/override-check';
 import { NO_OVERRIDES, validateOverrideInput } from '../shared/overrides';
 import { exportSettings, parseSettings } from '../shared/settings';
+import { showEnvNotes } from '../shared/env-notes';
 import { getState, onStateChanged, setState, updateState } from '../shared/storage';
 import type { State } from '../shared/types';
 import { validateCredentials, validateProfile } from '../shared/validate';
@@ -418,6 +419,7 @@ chrome.storage.onChanged.addListener((changes) => {
 
 void getState().then(render);
 onStateChanged(render);
+if (__BROWSER__ === 'firefox') showEnvNotes($('private-note'), $('rfp-note'));
 
 const backupMsg = (text: string, ok = false) => {
   $('backup-msg').textContent = text;

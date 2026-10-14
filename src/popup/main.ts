@@ -3,6 +3,7 @@ import { hostMatches } from '../shared/domains';
 import { effectiveExit } from '../shared/exit';
 import { sendMessage } from '../shared/messages';
 import { activeProfile } from '../shared/profiles';
+import { showEnvNotes } from '../shared/env-notes';
 import { getState, onStateChanged, setState, updateState } from '../shared/storage';
 import { RULES_STATUS_KEY, type RulesStatus } from '../shared/rules-status';
 import { analyzeAudit, auditGate, shieldLabel } from '../audit/analyze';
@@ -250,3 +251,4 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 onStateChanged(render);
+if (__BROWSER__ === 'firefox') showEnvNotes($('private-note'), $('rfp-note'));

@@ -4,6 +4,7 @@ import { protectionPlan, type ProtectionPlan } from '../shared/plan';
 import { RULES_STATUS_KEY, type RulesStatus } from '../shared/rules-status';
 import { CONFIG_KEY, PRELUDE_KEY } from '../shared/spoof-config';
 import { getState } from '../shared/storage';
+import { effectiveState } from '@platform/env';
 import { setGuard } from '@platform/guard';
 import { verifyProxyControl } from '@platform/control';
 import type { State } from '../shared/types';
@@ -46,7 +47,7 @@ async function syncPrelude(): Promise<void> {
 
 async function applyProtection(): Promise<void> {
   await syncPrelude().catch((e) => log('warn', 'Could not store the worker prelude', e));
-  const state = await getState();
+  const state = await effectiveState(await getState());
   const plan = protectionPlan(state);
   const { config } = plan;
 

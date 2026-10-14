@@ -3,7 +3,7 @@
 Port of [`../noleaker`](../noleaker) (Chrome MV3, v0.1.1) to Firefox desktop.
 The work happens **inside the `noleaker` repo** as a second build target; this file is only the plan.
 
-Date: 2026-10-14. Status: Phase 0, 1b and 2 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
+Date: 2026-10-14. Status: Phase 0, 1b, 2 and 3 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
 
 ## 1. Decisions
 
@@ -247,6 +247,29 @@ proxy check still assumes Chrome's PAC (Phase 5).
 
 **Done when:** WebRTC shows no real IP, Accept-Language matches, the private-window badge appears
 and disappears with the setting, and enabling RFP turns the fingerprint shields off.
+
+#### Phase 3 results (2026-10-14)
+
+Done in code, with unit tests (`tests/firefox-env.test.ts`):
+
+- WebRTC policy and network prediction: `protection.ts` was already shared (`chrome.privacy.network`
+  exists in Firefox with the same values); their change watchers moved to the shared
+  `background/privacy-watch.ts`, used by both wirings. Proxy re-verification is the
+  `@platform/control` listener check from Phase 2.
+- DNR header rules (Accept-Language, Alt-Svc) unchanged and shared. No `webRequest` fallback was
+  added, since spike 2 found nothing missing; this stays unconfirmed until tested in Firefox.
+- Private windows (decision 8): `browserEnv` in `storage.local` (`shared/browser-env.ts`), read on
+  every background start and whenever the popup, options or leak test opens. A "PW!" badge with an
+  explanation replaces the country badge while the proxy is on and access is missing; notices in
+  popup and options; a "Private windows" check in the leak test.
+- RFP (decision 9): `privacy.websites.resistFingerprinting` read on start and followed via
+  `onChange`; while on, `@platform/env` switches off canvas, WebGL, audio, client rects, screen,
+  CPU and memory shields in the effective config (the user's settings stay as they are). Notes in
+  options, popup and the leak test (which also explains that FPP cannot be read).
+- Chrome bundle +40 bytes for the `@platform/env` hook (baseline updated).
+
+**Not verified (needs a real Firefox):** the "Done when" checks (WebRTC shows no real IP,
+Accept-Language matches, the badge follows the private-window setting, RFP turns the shields off).
 
 ### Phase 4: Content scripts (spoofing, bridge, workers, stealth)
 
