@@ -8,11 +8,13 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "dev:firefox": "node scripts/dev.mjs firefox",
+    "start:firefox": "web-ext run -s dist/firefox",
     "build": "npm run build:chrome && npm run build:firefox",
     "build:chrome": "tsc --noEmit && node scripts/build.mjs chrome",
     "build:firefox": "tsc --noEmit -p tsconfig.firefox.json && node scripts/build.mjs firefox",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.firefox.json",
     "lint": "eslint .",
+    "lint:firefox": "web-ext lint -s dist/firefox --self-hosted",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
@@ -30,6 +32,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vite": "^8.3.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "web-ext": "^10.7.0"
   }
 }
