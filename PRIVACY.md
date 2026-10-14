@@ -33,10 +33,12 @@ deleted when the tab closes. They are never sent anywhere.
 
 ## What it stores locally
 
-Your proxy profiles (name, host, port), settings, the detected exit (IP, country, timezone), the
+Your proxy profiles (name, host, port and, in the Firefox build, an optional SOCKS5 username and
+password), settings, the detected exit (IP, country, timezone), the
 Iran domain list, your whitelist and extra direct domains, and a short diagnostics log (the last
 100 events; no page URLs). Nothing is uploaded. **Export settings** writes a file you control; it
-contains your proxy addresses, so keep it private.
+contains your proxy addresses and any SOCKS5 passwords, so keep it private. SOCKS5 passwords are
+stored unencrypted in extension storage, as with any proxy extension.
 
 Optional shields add request headers (`DNT`, `Sec-GPC`) and change `Accept-Language`; they only
 change what your browser sends and do not send anything to us or anyone new.

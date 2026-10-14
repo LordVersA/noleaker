@@ -77,7 +77,14 @@ export function parseSettings(text: string): ImportResult {
     const error = validateProfile(p.name, host, port);
     if (error) return { ok: false, error: `Proxy "${p.name}": ${error}` };
     if (profiles.some((x) => x.id === p.id)) return { ok: false, error: 'Duplicate proxy id.' };
-    profiles.push({ id: p.id, name: p.name.trim(), host, port });
+    const credentials =
+      typeof p.username === 'string' && p.username
+        ? {
+            username: p.username,
+            password: typeof p.password === 'string' ? p.password : '',
+          }
+        : {};
+    profiles.push({ id: p.id, name: p.name.trim(), host, port, ...credentials });
   }
 
   const domains = (v: unknown) =>

@@ -34,7 +34,7 @@ function enqueue(task: () => Promise<void>): void {
 /** Changes whenever the proxy configuration that detection depends on changes. */
 function configKey(state: State): string {
   const p = activeProfile(state);
-  return state.enabled && p ? `${p.host}:${p.port}` : 'off';
+  return state.enabled && p ? `${p.username ?? ''}@${p.host}:${p.port}` : 'off';
 }
 
 /** "FR 1.2.3.4" for the log. */

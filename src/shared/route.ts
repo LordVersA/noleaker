@@ -16,7 +16,8 @@ export interface RouteContext {
 /** Answers whether a normalized host (or a parent domain) goes direct. */
 export type DirectLookup = (host: string) => boolean;
 
-const NONE: DirectLookup = () => false;
+/** No direct domains. */
+export const NO_DIRECT: DirectLookup = () => false;
 
 /**
  * In-memory form of the Iran list plus extra direct domains. Each TLD group is decoded on first
@@ -26,7 +27,7 @@ export function directLookup(
   groups: Groups = {},
   extraDirect: readonly string[] = [],
 ): DirectLookup {
-  if (Object.keys(groups).length === 0 && extraDirect.length === 0) return NONE;
+  if (Object.keys(groups).length === 0 && extraDirect.length === 0) return NO_DIRECT;
   const extra = new Set(extraDirect);
   const decoded = new Map<string, Set<string>>();
   const group = (tld: string): Set<string> => {

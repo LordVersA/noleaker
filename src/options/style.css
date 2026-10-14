@@ -294,8 +294,12 @@ td.actions-cell {
   grid-template-columns: 1fr 110px;
   gap: 12px;
 }
-.grid .wide {
+.grid .wide,
+.grid .auth {
   grid-column: 1 / -1;
+}
+.auth[hidden] {
+  display: none;
 }
 .error {
   min-height: 18px;

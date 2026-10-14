@@ -11,6 +11,17 @@ export function isValidPort(port: number): boolean {
   return Number.isInteger(port) && port >= 1 && port <= 65535;
 }
 
+/** SOCKS5 username/password authentication (RFC 1929): each 1-255 bytes. */
+export function validateCredentials(username: string, password: string): string | null {
+  if (!username && !password) return null;
+  const bytes = (s: string) => new TextEncoder().encode(s).length;
+  if (!username) return 'A password needs a username.';
+  if (bytes(username) > 255 || bytes(password) > 255)
+    return 'Username and password must be at most 255 bytes.';
+  if (!password) return 'A username needs a password.';
+  return null;
+}
+
 /** Returns an error message, or null if the profile fields are valid. */
 export function validateProfile(name: string, host: string, port: number): string | null {
   if (!name.trim()) return 'Name is required.';

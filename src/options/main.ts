@@ -11,13 +11,16 @@ import { NO_OVERRIDES, validateOverrideInput } from '../shared/overrides';
 import { exportSettings, parseSettings } from '../shared/settings';
 import { getState, onStateChanged, setState, updateState } from '../shared/storage';
 import type { State } from '../shared/types';
-import { validateProfile } from '../shared/validate';
+import { validateCredentials, validateProfile } from '../shared/validate';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const form = $<HTMLFormElement>('form');
 const nameEl = $<HTMLInputElement>('name');
 const hostEl = $<HTMLInputElement>('host');
 const portEl = $<HTMLInputElement>('port');
+// SOCKS authentication works only through Firefox's proxy API; Chrome's PAC cannot carry it.
+const AUTH = __BROWSER__ === 'firefox';
+if (AUTH) for (const el of document.querySelectorAll<HTMLElement>('.auth')) el.hidden = false;
 
 let editingId: string | null = null;
 
@@ -295,6 +298,10 @@ function render(state: State): void {
           nameEl.value = p.name;
           hostEl.value = p.host;
           portEl.value = String(p.port);
+          if (AUTH) {
+            $<HTMLInputElement>('username').value = p.username ?? '';
+            $<HTMLInputElement>('password').value = p.password ?? '';
+          }
           $('form-title').textContent = 'Edit proxy';
           $('save').textContent = 'Save';
           $('cancel').hidden = false;
@@ -321,11 +328,27 @@ form.addEventListener('submit', (e) => {
   const name = nameEl.value.trim();
   const host = hostEl.value.trim().replace(/^\[|\]$/g, '');
   const port = Number(portEl.value);
-  const error = validateProfile(name, host, port);
+  const error =
+    validateProfile(name, host, port) ??
+    (AUTH
+      ? validateCredentials(
+          $<HTMLInputElement>('username').value,
+          $<HTMLInputElement>('password').value,
+        )
+      : null);
   $('error').textContent = error ?? '';
   if (error) return;
   const id = editingId ?? crypto.randomUUID();
-  void updateState((s) => upsertProfile(s, { id, name, host, port })).then(resetForm);
+  void updateState((s) => {
+    const fields = { id, name, host, port };
+    if (AUTH) {
+      const username = $<HTMLInputElement>('username').value;
+      const auth = username ? { username, password: $<HTMLInputElement>('password').value } : {};
+      return upsertProfile(s, { ...fields, ...auth });
+    }
+    // Chrome keeps credentials it cannot use (from an imported Firefox file) untouched.
+    return upsertProfile(s, { ...s.profiles.find((p) => p.id === id), ...fields });
+  }).then(resetForm);
 });
 $('cancel').addEventListener('click', resetForm);
 

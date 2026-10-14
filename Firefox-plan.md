@@ -3,7 +3,7 @@
 Port of [`../noleaker`](../noleaker) (Chrome MV3, v0.1.1) to Firefox desktop.
 The work happens **inside the `noleaker` repo** as a second build target; this file is only the plan.
 
-Date: 2026-10-14. Status: Phase 0 and Phase 1b done; Phase 1 done except a manual load check in Firefox (see spike notes).
+Date: 2026-10-14. Status: Phase 0, 1b and 2 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
 
 ## 1. Decisions
 
@@ -207,6 +207,32 @@ builds both targets, its tests pass, and Flow unlock works in Chrome and in Fire
 **Done when:** proxy on shows the proxy IP, Iran-list sites go direct in compatibility mode,
 stopping the SOCKS server blocks everything within one check interval and never goes direct,
 restarting recovers, and an authenticated SOCKS server works.
+
+#### Phase 2 results (2026-10-14)
+
+Done in code, with unit tests (`tests/firefox-routing.test.ts`, `tests/socks-auth.test.ts`):
+
+- `platform/firefox/routing.ts`: one `proxy.onRequest` listener, registered synchronously at
+  background start (`wiring.ts`). Answers from an in-memory table: SOCKS5 with `proxyDNS: true`
+  (+ credentials, `failoverTimeout: 5`), direct, or a dead end (`socks 127.0.0.1:1`, remote DNS).
+  Proxy off: no answer (Firefox's own settings apply).
+- Requests that arrive before the first table wait for it (startup / event-page wake), and get the
+  dead end after 10 s. Every exception answers with the dead end, so Firefox never falls back to
+  direct because of our listener.
+- Kill switch and strict local-host block via `route()`. Probe hosts pass the kill switch and the
+  transition guard only when `originUrl` and `documentUrl` are the extension.
+- Transition guard (`platform/firefox/guard.ts`) is part of the table and kept in
+  `storage.session`; it is on from browser start until `syncProtection` verifies the controls.
+- Direct lookup rebuilt only when the Iran list or extra domains change.
+- `proxy.onError` feeds the shared rate-limited re-check. `verifyProxyControl` checks the
+  listener is registered.
+- SOCKS5 username/password: optional profile fields, shown in Options only in the Firefox build,
+  validated per RFC 1929, kept through export/import (also on Chrome, which ignores them).
+
+**Not verified (needs a real Firefox):** the "Done when" checks above, and whether Firefox holds
+primed requests at startup as expected (spike 1, E2E test 1). No `proxy.settings` fallback was
+added: setting it needs private-window access and the listener already fails closed. The leak test
+proxy check still assumes Chrome's PAC (Phase 5).
 
 ### Phase 3: Leak protection and Firefox-specific state
 

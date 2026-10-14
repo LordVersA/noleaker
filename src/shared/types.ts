@@ -3,6 +3,9 @@ export interface ProxyProfile {
   name: string;
   host: string;
   port: number;
+  /** SOCKS5 username/password. Used by the Firefox build only; Chrome's proxy API cannot. */
+  username?: string;
+  password?: string;
 }
 
 export interface ExitInfo {

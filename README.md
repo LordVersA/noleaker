@@ -95,7 +95,8 @@ npm run package   # build and zip both targets to release/
 ```
 
 Load the `dist/chrome/` folder with **Load unpacked**. The Firefox build (`dist/firefox/`) is a
-work in progress and does not route traffic yet. After a rebuild, reload the extension and your open
+work in progress: proxy routing is implemented but not yet tested in Firefox, and leak protection
+and the leak test are not finished. After a rebuild, reload the extension and your open
 tabs. Testing, releases and design notes: [docs/DETAILS.md](docs/DETAILS.md) and
 [DESIGN.md](DESIGN.md).
 
