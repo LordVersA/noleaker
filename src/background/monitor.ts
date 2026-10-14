@@ -4,7 +4,7 @@ import { detectExit } from '../shared/lookup';
 import { log } from '../shared/log';
 import { getState, persistMigration, setState } from '../shared/storage';
 import type { State } from '../shared/types';
-import { syncFlowScript } from './flow';
+import { removeLegacyFlow } from './legacy';
 import { syncProtection } from './protection';
 import { scheduleUpdates } from './iranlist';
 import { setGuard } from '@platform/guard';
@@ -131,11 +131,10 @@ async function markVerified(): Promise<void> {
 }
 
 async function handleChange(): Promise<void> {
-  let state = await getState();
-  const key = configKey(state);
+  const key = configKey(await getState());
   const prev = (await chrome.storage.session.get(KEY))[KEY];
   if (key !== prev) {
-    state = await setState({
+    await setState({
       detectedExit: null,
       killSwitchActive: false,
       controlsVerifiedAt: null,
@@ -144,7 +143,6 @@ async function handleChange(): Promise<void> {
   }
   await syncProxy();
   await syncProtection();
-  await syncFlowScript(state);
   if (key !== prev && key !== 'off') await runCheck();
   else await markVerified();
 }
@@ -183,6 +181,7 @@ export function ensureAlarms(): void {
 export function onStartup(): void {
   enqueue(async () => {
     if (await persistMigration()) log('info', 'Migrated stored settings');
+    await removeLegacyFlow();
     await setState({ controlsVerifiedAt: null });
     await chrome.storage.session.remove(KEY); // force a fresh detection
     await forgetAppliedPac();

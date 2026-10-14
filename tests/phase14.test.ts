@@ -333,7 +333,7 @@ describe('storage, migration and export', () => {
       },
       { localeMode: 'country' },
     );
-    expect(JSON.parse(exportSettings(state)).version).toBe(7);
+    expect(JSON.parse(exportSettings(state)).version).toBe(8);
     const r = parseSettings(exportSettings(state));
     expect(r.ok && r.patch.overrides).toEqual(state.overrides);
     expect(r.ok && r.patch.localeMode).toBe('country');

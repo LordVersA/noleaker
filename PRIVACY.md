@@ -38,11 +38,6 @@ Iran domain list, your whitelist and extra direct domains, and a short diagnosti
 100 events; no page URLs). Nothing is uploaded. **Export settings** writes a file you control; it
 contains your proxy addresses, so keep it private.
 
-The Google Flow unlock (on by default) runs only on `flow.google.com` and
-`labs.google/fx/tools/flow`. It edits Google's answers inside the page and, if you land on Flow's
-"unsupported country" page, reloads the tab at `https://flow.google.com/`. It sends nothing anywhere
-and stores only a per-tab list of bounce times in `chrome.storage.session`.
-
 Optional shields add request headers (`DNT`, `Sec-GPC`) and change `Accept-Language`; they only
 change what your browser sends and do not send anything to us or anyone new.
 

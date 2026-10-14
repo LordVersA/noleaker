@@ -199,30 +199,9 @@ reported a CSP that blocks blob workers. Limits:
 
 ### Google Flow unlock
 
-Not part of the privacy goals: it works around a regional block of Google Flow. Options → Google
-Flow unlock (on by default). It runs only on `flow.google.com` and `labs.google/fx/tools/flow`, and
-it is independent of the proxy and of every shield. It has four parts, all kept apart from the
-rest (`src/flow/`, `src/background/flow.ts`, and one rule in `src/background/rules.ts`):
-
-- **Answers:** a page script wraps `fetch` and `XMLHttpRequest` for `/data/batchexecute`. In the
-  `cPZSdc` answer it turns feature flags 31 and 32 on; in the `KV2T2d` answer it rewrites the blocked
-  status codes 4, 5, 6 and 8 to 1. It reads JSON and base64 protobuf payloads and repairs the length
-  in front of every edited chunk and the total in the closing chunk.
-- **Page:** if Flow drew its main screen but none of its answers could be rewritten, the page is
-  stopped for about two seconds so it cannot replace that screen with the error.
-- **Network:** a `declarativeNetRequest` rule blocks the `unsupported-country` page.
-- **Tab:** when that page is reached anyway (blocked load, navigation or Flow's own router), the
-  service worker sends the tab back to `https://flow.google.com/`, keeping `/u/N/`, at most twice a
-  minute per tab.
-
-The page script is **not** in the manifest. The service worker registers it for the two Flow
-addresses only while the switch is on, so with the switch off no Flow code is in the page and the
-page needs no channel to learn the setting. Tabs that are already open pick a change up on their
-next load.
-
-Limits: it depends on a private Google format and will break when Google changes it; the recorded
-samples in `tests/phase16.test.ts` are there to show that quickly. It does nothing for Flow
-features that Google also checks on its servers by your IP (the proxy's exit country matters).
+Moved to its own extension, [noleaker-flow](https://github.com/LordVersA/noleaker-flow), for Chrome
+and Firefox. Updating from v0.1.1 removes the old Flow page script, its network rule and the
+setting.
 
 ## Testing
 

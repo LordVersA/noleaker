@@ -1,18 +1,16 @@
 import { CAPTCHA_DOMAINS, RECAPTCHA_URL_FILTER } from '../shared/antibot';
 import type { StageStatus } from '../shared/rules-status';
-import { UNSUPPORTED_ROUTE_REGEX } from '../flow/urls';
 
 export const RULE = {
   ALT_SVC: 1,
   ACCEPT_LANGUAGE: 2,
   HEADERS: 3,
   RECAPTCHA_ALLOW: 4,
-  FLOW_BLOCK: 5,
 } as const;
+/** Rule id 5 was the Google Flow country-page block (now in noleaker-flow); removed on update. */
+export const LEGACY_FLOW_RULE_ID = 5;
 export const CORE_IDS = [RULE.ALT_SVC, RULE.ACCEPT_LANGUAGE, RULE.RECAPTCHA_ALLOW];
 export const HEADER_IDS = [RULE.HEADERS];
-/** Google Flow has its own stage, so a problem there can never take the other rules down. */
-export const FLOW_IDS = [RULE.FLOW_BLOCK];
 
 /**
  * Priorities. An `allow` rule beats every lower-priority rule, so the reCAPTCHA exemption sits
@@ -120,22 +118,6 @@ export function headerRules(on: boolean, excluded: readonly string[]): DnrRule[]
         ],
       },
       condition: { resourceTypes: ALL_TYPES, ...exclude(excluded) },
-    },
-  ];
-}
-
-/** Blocks Flow's country-block page, so the tab never loads it and the background sends it home. */
-export function flowRules(on: boolean): DnrRule[] {
-  if (!on) return [];
-  return [
-    {
-      id: RULE.FLOW_BLOCK,
-      priority: PRIORITY.MODIFY,
-      action: { type: 'block' },
-      condition: {
-        regexFilter: UNSUPPORTED_ROUTE_REGEX,
-        resourceTypes: ['main_frame', 'sub_frame'],
-      },
     },
   ];
 }

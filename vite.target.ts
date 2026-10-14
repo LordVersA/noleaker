@@ -17,7 +17,6 @@ export const alias = { '@platform': resolve(import.meta.dirname, 'src/platform',
 
 export const define = {
   __BROWSER__: JSON.stringify(target),
-  __FEATURE_FLOW__: JSON.stringify(process.env.NOLEAKER_FLOW !== '0'),
 };
 
 /** Emits manifests/manifest.<target>.json as manifest.json. */

@@ -7,9 +7,10 @@ import { validateProfile } from './validate';
 const FORMAT = 'noleaker-settings';
 /**
  * 2: `shields` replaced `advanced`. 3: `overrides` and `localeMode`. 4: `stealth`. 5: `flowUnlock`.
- * 6: `autoExitCheck`. 7: routing mode and list updates. Older files are still read.
+ * 6: `autoExitCheck`. 7: routing mode and list updates. 8: `flowUnlock` dropped (now the separate
+ * noleaker-flow extension); it is ignored in older files. Older files are still read.
  */
-const VERSION = 7;
+const VERSION = 8;
 
 type Settings = Pick<
   State,
@@ -24,7 +25,6 @@ type Settings = Pick<
   | 'overrides'
   | 'localeMode'
   | 'stealth'
-  | 'flowUnlock'
   | 'autoExitCheck'
 >;
 
@@ -42,7 +42,6 @@ export function exportSettings(state: State): string {
     overrides: state.overrides,
     localeMode: state.localeMode,
     stealth: state.stealth,
-    flowUnlock: state.flowUnlock,
     autoExitCheck: state.autoExitCheck,
   };
   return JSON.stringify({ format: FORMAT, version: VERSION, ...settings }, null, 2);
@@ -64,7 +63,7 @@ export function parseSettings(text: string): ImportResult {
   if (!isRecord(data) || data.format !== FORMAT) {
     return { ok: false, error: 'This is not a noleaker settings file.' };
   }
-  if (![1, 2, 3, 4, 5, 6, VERSION].includes(data.version as number))
+  if (![1, 2, 3, 4, 5, 6, 7, VERSION].includes(data.version as number))
     return { ok: false, error: 'Unsupported settings version.' };
 
   const profiles: ProxyProfile[] = [];
@@ -122,8 +121,6 @@ export function parseSettings(text: string): ImportResult {
       overrides: sanitizeOverrides(data.overrides),
       localeMode: data.localeMode === 'country' ? 'country' : 'english',
       stealth: data.stealth === true,
-      // On unless the file says otherwise; files from before version 5 do not know the switch.
-      flowUnlock: data.flowUnlock !== false,
       autoExitCheck: data.autoExitCheck !== false,
       // The proxy cannot stay on without a profile.
       ...(activeId ? {} : { enabled: false }),

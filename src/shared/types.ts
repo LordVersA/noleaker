@@ -70,8 +70,6 @@ export interface State {
   localeMode: LocaleMode;
   /** Hide this extension's traces from page scripts as far as practical. Off by default. */
   stealth: boolean;
-  /** Google Flow unlock. Default on; it only does anything on Flow pages. */
-  flowUnlock: boolean;
   /** Re-detect the exit every minute and follow a change (a server moved to another country). */
   autoExitCheck: boolean;
 }

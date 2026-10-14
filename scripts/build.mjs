@@ -8,7 +8,7 @@ const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
 const env = { ...process.env, NOLEAKER_TARGET: target };
 const builds = [
   ['--config', 'vite.config.ts'],
-  ...['main', 'bridge', 'worker', 'flow'].map((mode) => [
+  ...['main', 'bridge', 'worker'].map((mode) => [
     '--config',
     'vite.content.config.ts',
     '--mode',

@@ -145,7 +145,6 @@ function renderOverrides(state: State): void {
   $<HTMLButtonElement>('iran-update').disabled =
     state.routingMode === 'strict' || !state.listUpdates;
   $<HTMLInputElement>('stealth').checked = state.stealth;
-  $<HTMLInputElement>('flow-unlock').checked = state.flowUnlock;
   const o = state.overrides;
   const auto = autoIdentity(state);
   ov.mode.value = state.localeMode;
@@ -192,9 +191,6 @@ function initOverrides(): void {
   });
   $('stealth').addEventListener('change', () => {
     void updateState(() => ({ stealth: $<HTMLInputElement>('stealth').checked }));
-  });
-  $('flow-unlock').addEventListener('change', () => {
-    void updateState(() => ({ flowUnlock: $<HTMLInputElement>('flow-unlock').checked }));
   });
   const zones = (Intl as unknown as { supportedValuesOf?: (key: string) => string[] })
     .supportedValuesOf;

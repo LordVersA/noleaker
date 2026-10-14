@@ -45,7 +45,7 @@ describe('autoExitCheck in state and files', () => {
   it('round-trips through export and import, and reads older files', () => {
     const off: State = { ...DEFAULT_STATE, autoExitCheck: false };
     const exported = JSON.parse(exportSettings(off));
-    expect(exported.version).toBe(7);
+    expect(exported.version).toBe(8);
     expect(exported.autoExitCheck).toBe(false);
     const back = parseSettings(exportSettings(off));
     expect(back.ok && back.patch.autoExitCheck).toBe(false);

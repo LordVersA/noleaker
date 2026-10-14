@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
 const builds = [
   ['--config', 'vite.config.ts', '--mode', 'development'],
-  ...['main', 'bridge', 'worker', 'flow'].map((mode) => [
+  ...['main', 'bridge', 'worker'].map((mode) => [
     '--config',
     'vite.content.config.ts',
     '--mode',
@@ -50,7 +50,7 @@ try {
     });
   }
   console.log(
-    `Watching ${target}: UI, background, main, bridge, worker and Flow. Reload the extension after changes.`,
+    `Watching ${target}: UI, background, main, bridge and worker. Reload the extension after changes.`,
   );
 } catch (error) {
   console.error(error);

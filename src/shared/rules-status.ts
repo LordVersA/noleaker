@@ -13,8 +13,6 @@ export interface RulesStatus {
   core: StageStatus;
   /** DNT / Sec-GPC / If-None-Match. Null while the headers shield is off. */
   headers: StageStatus | null;
-  /** The Google Flow route block. Null while the Flow unlock is off; absent in older records. */
-  flow?: StageStatus | null;
   updatedAt: number;
 }
 
@@ -38,12 +36,6 @@ export function rulesProblem(status: RulesStatus | undefined): RulesProblem | nu
     return {
       level: 'warn',
       reason: `Privacy headers could not be installed (${status.headers.error ?? 'unknown error'}).`,
-    };
-  }
-  if (status.flow && !status.flow.ok) {
-    return {
-      level: 'warn',
-      reason: `The Google Flow route block could not be installed (${status.flow.error ?? 'unknown error'}). The unlock still works, but Flow may flash its error page.`,
     };
   }
   const trimmed = [status.core, status.headers].some((s) => s && s.installed < s.requested);

@@ -1,7 +1,6 @@
 import '@platform/wiring';
 import { listen } from '../shared/messages';
 import { getState, onStateChanged } from '../shared/storage';
-import { listenForFlowBounce } from './flow';
 import { UPDATE_ALARM, updateIranList, approveIranList } from './iranlist';
 import { forgetTab, handleStaleReport, trackNavigation } from './stale';
 import { ensureAlarms, onAlarm, onConfigChange, onStartup, refreshExitNow } from './monitor';
@@ -41,6 +40,3 @@ chrome.runtime.onStartup.addListener(onStartup);
 // Stale-page recovery: know each tab's last navigation (form submits are never reloaded).
 chrome.webNavigation.onCommitted.addListener((details) => void trackNavigation(details));
 chrome.tabs.onRemoved.addListener((tabId) => void forgetTab(tabId));
-
-// Google Flow unlock: send a tab back when Flow lands on its country page.
-listenForFlowBounce();

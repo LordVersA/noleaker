@@ -17,8 +17,6 @@ export function protectionPlan(state: State) {
     acceptLanguage: config.active && state.shields.locale,
     /** DNT, Sec-GPC and If-None-Match follow the headers shield. */
     headers: config.active && state.shields.headers,
-    /** Google Flow unlock: independent of the proxy and of every shield. */
-    flow: state.flowUnlock,
     config,
   };
 }

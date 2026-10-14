@@ -3,7 +3,7 @@
 Port of [`../noleaker`](../noleaker) (Chrome MV3, v0.1.1) to Firefox desktop.
 The work happens **inside the `noleaker` repo** as a second build target; this file is only the plan.
 
-Date: 2026-10-14. Status: Phase 0 done; Phase 1 done except a manual load check in Firefox (see spike notes).
+Date: 2026-10-14. Status: Phase 0 and Phase 1b done; Phase 1 done except a manual load check in Firefox (see spike notes).
 
 ## 1. Decisions
 
@@ -140,7 +140,10 @@ must be confirmed by the Phase 6 E2E suite (or by hand) before the phase that de
 
 ### Phase 1b: Move Google Flow unlock to `../noleaker-flow`
 
-Done before Phase 2, so no Firefox work touches Flow code in this repo.
+Done before Phase 2, so no Firefox work touches Flow code in this repo. **Status: done
+(2026-10-14).** Not verified by hand: Flow unlock in a real Chrome/Firefox (load
+`../noleaker-flow/dist/<target>`); Firefox's DNR-blocked navigation error string (the Firefox
+build bounces on any error on the country page).
 
 **New project `../noleaker-flow`** (own git repo, GPL-3.0, own extension ID and Gecko ID
 `noleaker-flow@lordversa.github.io`):

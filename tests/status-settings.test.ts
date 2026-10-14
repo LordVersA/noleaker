@@ -42,9 +42,9 @@ describe('summarize', () => {
 });
 
 describe('settings files', () => {
-  it('exports version 7 with all shields', () => {
+  it('exports version 8 with all shields', () => {
     const data = JSON.parse(exportSettings(good));
-    expect(data.version).toBe(7);
+    expect(data.version).toBe(8);
     expect(Object.keys(data.shields)).toHaveLength(Object.keys(SHIELD_DEFAULTS).length);
     expect(data).not.toHaveProperty('advanced');
   });

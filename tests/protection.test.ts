@@ -33,7 +33,6 @@ const baseState = (shields: object) => ({
   whitelist: ['whitelisted.com'],
   extraDirectDomains: ['mine.org'],
   shields,
-  flowUnlock: false, // the Flow rule has its own tests (phase16.test.ts)
 });
 
 beforeEach(() => {

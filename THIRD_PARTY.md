@@ -63,5 +63,6 @@ Used to build, lint and test the project. None of them are shipped in the extens
 | typescript-eslint | MIT        |
 | vite              | MIT        |
 | vitest            | MIT        |
+| web-ext           | MPL-2.0    |
 
 Their transitive dependencies are listed with exact versions in `package-lock.json`.

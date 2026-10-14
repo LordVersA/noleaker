@@ -11,8 +11,6 @@ import { loadIranGroups, META_KEY } from './iranlist';
 import {
   CORE_IDS,
   coreRules,
-  FLOW_IDS,
-  flowRules,
   HEADER_IDS,
   headerExclusions,
   headerRules,
@@ -129,7 +127,6 @@ async function rulesSignature(state: State, plan: ProtectionPlan): Promise<strin
     plan.acceptLanguage,
     plan.acceptLanguage ? plan.config.acceptLanguage : '',
     plan.headers,
-    plan.flow,
     state.routingMode,
     state.whitelist,
     plan.headers ? [state.extraDirectDomains, meta?.updatedAt ?? 0] : 0,
@@ -168,15 +165,7 @@ async function syncNetworkRules(state: State, plan: ProtectionPlan): Promise<voi
     await update(HEADER_IDS)([]).catch((e) => log('warn', 'Could not remove the header rule', e));
   }
 
-  // Flow route block: its own stage, so a failure here is reported but never touches the others.
-  let flow: RulesStatus['flow'] = null;
-  if (plan.flow) {
-    flow = await installStage(update(FLOW_IDS), () => flowRules(true), []);
-  } else {
-    await update(FLOW_IDS)([]).catch((e) => log('warn', 'Could not remove the Flow rule', e));
-  }
-
-  const status: RulesStatus = { core, headers, flow, updatedAt: Date.now() };
+  const status: RulesStatus = { core, headers, updatedAt: Date.now() };
   await chrome.storage.local.set({ [RULES_STATUS_KEY]: status });
   if (!core.ok) log('error', `Network rules failed: ${core.error}`);
   else if (core.installed < core.requested) {
@@ -189,8 +178,6 @@ async function syncNetworkRules(state: State, plan: ProtectionPlan): Promise<voi
       `Privacy header rule installed with ${headers.installed} of ${headers.requested} exclusions`,
     );
   }
-  if (flow && !flow.ok) log('warn', `Google Flow route block failed: ${flow.error}`);
   // Only remember the signature when everything went in, so a failure is retried next sync.
-  if (core.ok && (!headers || headers.ok) && (!flow || flow.ok))
-    await chrome.storage.session.set({ [SIG_KEY]: sig });
+  if (core.ok && (!headers || headers.ok)) await chrome.storage.session.set({ [SIG_KEY]: sig });
 }

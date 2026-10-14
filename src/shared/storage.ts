@@ -11,8 +11,9 @@ import type { State } from './types';
  * 6: `flowUnlock` (default on).
  * 7: `autoExitCheck` (default on).
  * 8: strict/compatibility routing, opt-in list updates, runtime verification.
+ * 9: `flowUnlock` removed (the Google Flow unlock is its own extension, noleaker-flow).
  */
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 export const DEFAULT_STATE: State = {
   schemaVersion: SCHEMA_VERSION,
@@ -33,7 +34,6 @@ export const DEFAULT_STATE: State = {
   overrides: NO_OVERRIDES,
   localeMode: 'english',
   stealth: false,
-  flowUnlock: true,
   autoExitCheck: true,
 };
 
@@ -76,6 +76,7 @@ export function migrateState(raw: unknown): State {
     };
   }
   delete stored.advanced;
+  delete stored.flowUnlock; // v9
 
   const state = {
     ...DEFAULT_STATE,
@@ -94,7 +95,6 @@ export function migrateState(raw: unknown): State {
     overrides: sanitizeOverrides(stored.overrides),
     localeMode: stored.localeMode === 'country' ? 'country' : 'english',
     stealth: stored.stealth === true,
-    flowUnlock: stored.flowUnlock !== false,
     autoExitCheck: stored.autoExitCheck !== false,
     schemaVersion: Math.max(version, SCHEMA_VERSION),
   } as State;
