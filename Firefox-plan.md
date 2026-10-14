@@ -7,21 +7,21 @@ Date: 2026-10-14. Status: Phase 0 done; Phase 1 done except a manual load check 
 
 ## 1. Decisions
 
-| #   | Topic                  | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| --- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Codebase               | One codebase, two build targets, in the existing `noleaker` repo.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| 1b  | Per-platform builds    | Platform code lives in `src/platform/chrome/*` and `src/platform/firefox/*`, imported through an `@platform/*` alias resolved **at build time**. Each bundle contains only its own platform code. No `webextension-polyfill`, no runtime `isFirefox` branches. Small differences use `define` constants (`__BROWSER__`, `__FEATURE_FLOW__`) that the minifier removes. Shared code keeps using `chrome.*` where both browsers support it (Firefox MV3 supports the `chrome` namespace with promises). |
-| 2   | Proxy routing          | `browser.proxy.onRequest` in Firefox (not PAC). PAC matching logic is extracted into a pure, shared `route(host, ctx)` function. The Iran list is kept in memory as a lookup structure instead of a 127k-entry PAC string.                                                                                                                                                                                                                                                                            |
-| 2b  | SOCKS auth             | SOCKS5 username/password supported **in Firefox only** (`proxyInfo.username/password`). Shared profile type gets optional fields; Chrome UI hides them.                                                                                                                                                                                                                                                                                                                                               |
-| 3   | Kill switch / guard    | Kill switch, transition guard and strict-mode local-host block are decided **inside `route()`** (dead-end proxy, or cancel). `guard.ts` becomes Chrome-only. Accept-Language and Alt-Svc stripping stay on **DNR** (shared `rules.ts`); any DNR feature Firefox lacks falls back to `webRequest` for that one case only.                                                                                                                                                                              |
-| 4   | Target                 | Firefox desktop, `strict_min_version: "140.0"` (ESR 140). Android not in scope (optional late phase). Forks (LibreWolf, Floorp, Zen) "probably works, untested". Tor Browser out of scope.                                                                                                                                                                                                                                                                                                            |
-| 5   | Distribution           | First **unlisted, AMO-signed** `.xpi` on GitHub Releases with self-hosted `update_url`. Public AMO listing later, after a policy review.                                                                                                                                                                                                                                                                                                                                                              |
-| 6   | Google Flow unlock     | Ported behind build flag `__FEATURE_FLOW__`. Included in the GitHub (unlisted) build, compiled out entirely in the AMO build. Late phase.                                                                                                                                                                                                                                                                                                                                                             |
-| 7   | Containers             | No per-container routing, ever. One proxy for all containers, same model as Chrome.                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| 8   | Private windows        | Warning only: notice in popup/options/leak test, plus a **warning badge on the toolbar icon** when "Run in Private Windows" is not allowed. Status logic otherwise unchanged. Manifest `"incognito": "spanning"`.                                                                                                                                                                                                                                                                                     |
-| 9   | Firefox RFP / FPP      | When `privacy.resistFingerprinting` is on, our fingerprint shields (canvas, audio, WebGL, screen, CPU) are disabled automatically, with a note in options and the leak test. Timezone and locale spoofing stay on. FPP cannot be read: documented note only. We never change the user's RFP setting.                                                                                                                                                                                                  |
-| 10  | Testing                | vitest unit (shared + `route()` + manifest) + **bundle-content test** + `web-ext lint` in CI + small **Selenium/geckodriver E2E** suite for 4 leak scenarios: startup, kill switch, private window without access, WebRTC. Everything else on the manual checklist.                                                                                                                                                                                                                                   |
-| 11  | Version / ID / release | One version for both targets, one GitHub release with `noleaker-chrome-X.Y.Z.zip` and `noleaker-firefox-X.Y.Z.xpi`, both in `SHA256SUMS.txt`. Gecko ID `noleaker@lordversa.github.io` (permanent). `update_url` → `updates.json` attached to GitHub Releases (`releases/latest/download/updates.json`).                                                                                                                                                                                               |
+| #   | Topic                  | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Codebase               | One codebase, two build targets, in the existing `noleaker` repo.                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 1b  | Per-platform builds    | Platform code lives in `src/platform/chrome/*` and `src/platform/firefox/*`, imported through an `@platform/*` alias resolved **at build time**. Each bundle contains only its own platform code. No `webextension-polyfill`, no runtime `isFirefox` branches. Small differences use the `__BROWSER__` `define` constant, which the minifier removes. Shared code keeps using `chrome.*` where both browsers support it (Firefox MV3 supports the `chrome` namespace with promises). |
+| 2   | Proxy routing          | `browser.proxy.onRequest` in Firefox (not PAC). PAC matching logic is extracted into a pure, shared `route(host, ctx)` function. The Iran list is kept in memory as a lookup structure instead of a 127k-entry PAC string.                                                                                                                                                                                                                                                           |
+| 2b  | SOCKS auth             | SOCKS5 username/password supported **in Firefox only** (`proxyInfo.username/password`). Shared profile type gets optional fields; Chrome UI hides them.                                                                                                                                                                                                                                                                                                                              |
+| 3   | Kill switch / guard    | Kill switch, transition guard and strict-mode local-host block are decided **inside `route()`** (dead-end proxy, or cancel). `guard.ts` becomes Chrome-only. Accept-Language and Alt-Svc stripping stay on **DNR** (shared `rules.ts`); any DNR feature Firefox lacks falls back to `webRequest` for that one case only.                                                                                                                                                             |
+| 4   | Target                 | Firefox desktop, `strict_min_version: "140.0"` (ESR 140). Android not in scope (optional late phase). Forks (LibreWolf, Floorp, Zen) "probably works, untested". Tor Browser out of scope.                                                                                                                                                                                                                                                                                           |
+| 5   | Distribution           | First **unlisted, AMO-signed** `.xpi` on GitHub Releases with self-hosted `update_url`. Public AMO listing later, after a policy review.                                                                                                                                                                                                                                                                                                                                             |
+| 6   | Google Flow unlock     | **Moved out of noleaker** into its own extension, `../noleaker-flow`, for both Chrome and Firefox with the same two-target build as here (Phase 1b). noleaker keeps no Flow code, setting or flag; `__FEATURE_FLOW__` is removed.                                                                                                                                                                                                                                                    |
+| 7   | Containers             | No per-container routing, ever. One proxy for all containers, same model as Chrome.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 8   | Private windows        | Warning only: notice in popup/options/leak test, plus a **warning badge on the toolbar icon** when "Run in Private Windows" is not allowed. Status logic otherwise unchanged. Manifest `"incognito": "spanning"`.                                                                                                                                                                                                                                                                    |
+| 9   | Firefox RFP / FPP      | When `privacy.resistFingerprinting` is on, our fingerprint shields (canvas, audio, WebGL, screen, CPU) are disabled automatically, with a note in options and the leak test. Timezone and locale spoofing stay on. FPP cannot be read: documented note only. We never change the user's RFP setting.                                                                                                                                                                                 |
+| 10  | Testing                | vitest unit (shared + `route()` + manifest) + **bundle-content test** + `web-ext lint` in CI + small **Selenium/geckodriver E2E** suite for 4 leak scenarios: startup, kill switch, private window without access, WebRTC. Everything else on the manual checklist.                                                                                                                                                                                                                  |
+| 11  | Version / ID / release | One version for both targets, one GitHub release with `noleaker-chrome-X.Y.Z.zip` and `noleaker-firefox-X.Y.Z.xpi`, both in `SHA256SUMS.txt`. Gecko ID `noleaker@lordversa.github.io` (permanent). `update_url` → `updates.json` attached to GitHub Releases (`releases/latest/download/updates.json`).                                                                                                                                                                              |
 
 ## 2. What changes and what is shared
 
@@ -54,7 +54,7 @@ passing all existing tests after every phase.
 
 - Add `--mode chrome|firefox` to `vite.config.ts` and `vite.content.config.ts`; output to
   `dist/chrome/` and `dist/firefox/`.
-- `@platform/*` alias → `src/platform/<target>/`; `define` constants `__BROWSER__`, `__FEATURE_FLOW__`.
+- `@platform/*` alias → `src/platform/<target>/`; `define` constants `__BROWSER__`, `__FEATURE_FLOW__` (the latter goes away in Phase 1b).
 - Move Chrome-only code (`guard.ts`, PAC serializer, proxy settings verification, Chrome listener
   wiring) into `src/platform/chrome/` without behavior change.
 - Extract `route(host, ctx)` from `pac.ts` as a pure shared function; the Chrome PAC serializer
@@ -86,7 +86,7 @@ and the bundle is not larger.
      `modifyHeaders` on response headers (Alt-Svc), dynamic rule limits.
   3. **MAIN world:** `content_scripts[].world: "MAIN"` at `document_start`, all frames,
      `about:blank`; ordering against inline page scripts; `scripting.registerContentScripts` with
-     `world: "MAIN"` (needed by Flow).
+     `world: "MAIN"` (needed by noleaker-flow).
   4. **HTTP/3 over SOCKS:** confirm Firefox does not use QUIC for SOCKS-proxied requests, so
      Alt-Svc stripping stays a mitigation and nothing more is needed.
   5. **`privacy.network.*`:** `webRTCIPHandlingPolicy` (`disable_non_proxied_udp`) and
@@ -137,6 +137,53 @@ must be confirmed by the Phase 6 E2E suite (or by hand) before the phase that de
    `disable_non_proxied_udp`) and `networkPredictionEnabled`, with the same `levelOfControl`
    strings as Chrome, so `protection.ts` can stay shared. The `onChange` listeners in
    `platform/chrome/wiring.ts` can be reused for Firefox in Phase 3.
+
+### Phase 1b: Move Google Flow unlock to `../noleaker-flow`
+
+Done before Phase 2, so no Firefox work touches Flow code in this repo.
+
+**New project `../noleaker-flow`** (own git repo, GPL-3.0, own extension ID and Gecko ID
+`noleaker-flow@lordversa.github.io`):
+
+- Same layout and tooling as noleaker: Vite, TypeScript, vitest, ESLint/Prettier, two targets
+  through `NOLEAKER_TARGET=chrome|firefox`, `src/platform/<target>/` behind `@platform/*`,
+  `manifests/manifest.{chrome,firefox}.json`, output `dist/chrome/` and `dist/firefox/`,
+  bundle-content test, `web-ext lint`, release workflow producing
+  `noleaker-flow-chrome-X.Y.Z.zip` and `noleaker-flow-firefox-X.Y.Z.xpi` (Firefox: unlisted,
+  AMO-signed, self-hosted `update_url`, same as noleaker Phase 7).
+- Moves over: `src/flow/*`, `src/background/flow.ts`, the Flow DNR rules (`flowRules` in
+  `rules.ts`), the Flow switch and its UI, the `flow` content build, the Flow parts of
+  `tests/phase16.test.ts`, and the Flow text in README, PRIVACY.md and docs/DETAILS.md.
+- Small manifest: `storage`, `scripting`, `webNavigation`, `declarativeNetRequest`, host
+  permissions only for the Flow URLs (not `<all_urls>`). Popup with an on/off switch.
+- Background: registers the MAIN-world script for the Flow URLs (`scripting.registerContentScripts`,
+  `world: "MAIN"`, spike 3), DNR rule for the `unsupported-country` page, tab bounce via
+  `webNavigation`. Firefox: event page; Chrome: service worker.
+- Works on its own, with or without noleaker. It does not route traffic; README says the user still
+  needs a proxy (for example noleaker) for the country check.
+- Shared helpers it needs from noleaker (logging, storage wrapper) are copied, not imported; no
+  cross-repo dependency.
+
+**Removed from noleaker:**
+
+- `src/flow/`, `src/background/flow.ts`, `flowRules` / Flow rule IDs, `listenForFlowBounce` and
+  `syncFlowScript` calls (`index.ts`, `monitor.ts`, `protection.ts`), the Flow fields in
+  `shared/types.ts`, `plan.ts`, `rules-status.ts`, options UI and CSS, the `flow` entry in
+  `scripts/build.mjs`, `scripts/dev.mjs` and `vite.content.config.ts`, `__FEATURE_FLOW__` in
+  `vite.target.ts` and `src/env.d.ts`.
+- Storage migration (bump `SCHEMA_VERSION`): drop the stored Flow setting and unregister any
+  leftover registered Flow script and Flow DNR rules on update. Settings import ignores the old Flow
+  field so older exports still import.
+- Flow tests removed from noleaker (they live on in noleaker-flow); new tests: migration drops the
+  field, old exports import, and the bundle test proves neither target contains Flow code.
+- `manifest` permissions re-checked (`scripting` / `webNavigation` stay if stale-page detection still
+  needs them). Bundle baseline lowered to the new Chrome size.
+- README / PRIVACY.md / DETAILS.md: Flow section replaced by one line pointing to noleaker-flow.
+
+**Done when:** noleaker builds, lints and passes all tests with no Flow code in `dist/chrome` or
+`dist/firefox`; an upgraded v0.1.1 install has no Flow script or rules left; `../noleaker-flow`
+builds both targets, its tests pass, and Flow unlock works in Chrome and in Firefox (loaded with
+`web-ext run`) the same way it did inside noleaker.
 
 ### Phase 2: Proxy routing, auth, kill switch, exit detection
 
@@ -202,8 +249,8 @@ from Chrome imports into Firefox (and back).
 - Unit: `route()` matrix (Iran, extra direct, local, strict, kill switch, probe hosts, IPv6,
   auth), Firefox manifest, RFP/private-window config logic.
 - **Bundle-content test:** `dist/firefox` contains no `pacScript`, `proxy.settings.set`, guard
-  rules or other Chrome-only code; `dist/chrome` contains no `proxy.onRequest`; the AMO build has no
-  Flow code.
+  rules or other Chrome-only code; `dist/chrome` contains no `proxy.onRequest`; no build contains Flow
+  code (`batchexecute`, `unsupported-country`, `flow.js`).
 - `web-ext lint` on `dist/firefox` in CI.
 - **Selenium + geckodriver E2E** (local SOCKS5 server from `npm run socks`, fixture page):
   1. startup: no request goes direct before the listener is ready;
@@ -227,24 +274,13 @@ from Chrome imports into Firefox (and back).
 **Done when:** a tag produces both artifacts, the `.xpi` installs permanently in Firefox release, and
 a version bump auto-updates an installed copy.
 
-### Phase 8: Google Flow unlock (flagged)
+### Phase 8 (later, optional): Public AMO listing
 
-- `__FEATURE_FLOW__` define; `src/flow/` and `background/flow.ts` only imported behind it.
-- Registered MAIN-world script for the Flow URLs (from spike 3), DNR rule for the
-  `unsupported-country` page, tab bounce via `webNavigation`.
-- `tests/phase16.test.ts` samples pass for the Firefox build.
-
-**Done when:** Flow unlock works in the GitHub Firefox build and the bundle test proves the AMO build
-has none of its code.
-
-### Phase 9 (later, optional): Public AMO listing
-
-- AMO build profile: `__FEATURE_FLOW__ = false`.
 - Reproducible source package + build instructions for reviewers.
 - `data_collection_permissions` reviewed; listing text, screenshots, privacy policy.
 - Policy review of fingerprint shields and the domain list before submitting.
 
-### Phase 10 (later, optional): Firefox for Android
+### Phase 9 (later, optional): Firefox for Android
 
 - `gecko_android` in manifest, popup/options layout on mobile, `privacy.network` availability,
   testing on device.
