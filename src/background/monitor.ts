@@ -7,8 +7,8 @@ import type { State } from '../shared/types';
 import { syncFlowScript } from './flow';
 import { syncProtection } from './protection';
 import { scheduleUpdates } from './iranlist';
-import { forgetAppliedPac, syncProxy } from './proxy';
-import { setGuard } from './guard';
+import { setGuard } from '@platform/guard';
+import { forgetAppliedPac, syncProxy } from '@platform/proxy';
 
 const ALARM = 'health-check';
 const CHECK_MINUTES = 1;
@@ -196,8 +196,8 @@ export function onAlarm(alarm: chrome.alarms.Alarm): void {
 }
 
 /** Proxy errors trigger an early re-check (rate limited) instead of waiting for the timer. */
-export function onProxyError(details: chrome.proxy.ErrorDetails): void {
-  log('warn', `Chrome proxy error: ${details.error}${details.fatal ? ' (fatal)' : ''}`);
+export function onProxyError(details: { error: string; fatal?: boolean }): void {
+  log('warn', `Proxy error: ${details.error}${details.fatal ? ' (fatal)' : ''}`);
   if (Date.now() - lastCheckAt < ERROR_RECHECK_MS) return;
   enqueue(async () => void (await runCheck()));
 }

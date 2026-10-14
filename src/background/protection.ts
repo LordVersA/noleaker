@@ -4,7 +4,8 @@ import { protectionPlan, type ProtectionPlan } from '../shared/plan';
 import { RULES_STATUS_KEY, type RulesStatus } from '../shared/rules-status';
 import { CONFIG_KEY, PRELUDE_KEY } from '../shared/spoof-config';
 import { getState } from '../shared/storage';
-import { setGuard } from './guard';
+import { setGuard } from '@platform/guard';
+import { verifyProxyControl } from '@platform/control';
 import type { State } from '../shared/types';
 import { loadIranGroups, META_KEY } from './iranlist';
 import {
@@ -90,13 +91,7 @@ async function applyProtection(): Promise<void> {
     throw new Error('Required network rules could not be installed.');
   if (plan.proxyOn) {
     // Settings can change while rules are installed; verify again immediately before release.
-    const proxy = await chrome.proxy.settings.get({ incognito: false });
-    if (
-      proxy.levelOfControl !== 'controlled_by_this_extension' ||
-      proxy.value.mode !== 'pac_script' ||
-      proxy.value.pacScript?.mandatory !== true
-    )
-      throw new Error('Effective proxy control was lost before guard release.');
+    await verifyProxyControl();
     const predictionNow = await prediction.get({});
     if (
       predictionNow.value !== false ||

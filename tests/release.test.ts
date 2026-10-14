@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-const manifest = JSON.parse(readFileSync('public/manifest.json', 'utf8'));
+const manifest = JSON.parse(readFileSync('manifests/manifest.chrome.json', 'utf8'));
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 
 describe('release metadata', () => {

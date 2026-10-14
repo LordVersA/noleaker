@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "noleaker",
+  "version": "0.1.1",
+  "description": "SOCKS5 proxy manager with leak protection: timezone, locale, WebRTC and QUIC follow your proxy.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "noleaker@lordversa.github.io",
+      "strict_min_version": "140.0",
+      "update_url": "https://github.com/LordVersA/noleaker/releases/latest/download/updates.json",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "permissions": [
+    "storage",
+    "proxy",
+    "alarms",
+    "privacy",
+    "declarativeNetRequest",
+    "scripting",
+    "webNavigation"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "scripts": ["background.js"],
+    "type": "module"
+  },
+  "incognito": "spanning",
+  "action": {
+    "default_title": "noleaker",
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "options_ui": {
+    "page": "options/index.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "js": ["content/main.js"],
+      "world": "MAIN"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "js": ["content/bridge.js"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

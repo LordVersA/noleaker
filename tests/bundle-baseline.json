@@ -1,0 +1,4 @@
+{
+  "note": "Chrome production JS bytes (all dist/chrome/**/*.js) ; v0.1.1 had 151712 before the multi-target split. Lower it when the bundle shrinks; raise it only on purpose.",
+  "chromeJsBytes": 151664
+}

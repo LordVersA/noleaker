@@ -1,16 +1,20 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'node:path';
+import { alias, define, esTarget, manifest, outDir } from './vite.target.ts';
 
 // Multi-entry build for an MV3 extension. `src` is the root so HTML pages land at
-// dist/popup/index.html and dist/options/index.html; manifest.json is copied from public/.
+// dist/<target>/popup/index.html etc.; manifest.json comes from manifests/manifest.<target>.json.
 export default defineConfig(({ mode }) => ({
   root: 'src',
   publicDir: resolve(import.meta.dirname, 'public'),
   base: './',
+  resolve: { alias },
+  define,
+  plugins: [manifest()],
   build: {
-    outDir: resolve(import.meta.dirname, 'dist'),
+    outDir,
     emptyOutDir: process.env.NOLEAKER_WATCH !== '1',
-    target: 'chrome120',
+    target: esTarget,
     minify: mode === 'development' ? false : 'oxc',
     cssMinify: mode === 'development' ? false : 'lightningcss',
     sourcemap: mode === 'development',

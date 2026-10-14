@@ -1,11 +1,11 @@
-import { iconView } from '../shared/badge';
-import { generatePac } from '../shared/pac';
-import { activeProfile } from '../shared/profiles';
-import { getState } from '../shared/storage';
+import { iconView } from '../../shared/badge';
+import { generatePac } from './pac';
+import { activeProfile } from '../../shared/profiles';
+import { getState } from '../../shared/storage';
 import { setGuard, setLocalGuard } from './guard';
-import { setStatusIcon } from './icons';
-import { loadIranGroups } from './iranlist';
-import { forgetAppliedRules } from './protection';
+import { setStatusIcon } from '../../background/icons';
+import { loadIranGroups } from '../../background/iranlist';
+import { forgetAppliedRules } from '../../background/protection';
 
 const APPLIED_KEY = 'appliedPac';
 

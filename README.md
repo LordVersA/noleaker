@@ -86,14 +86,16 @@ What the extension sends over the network is in [PRIVACY.md](PRIVACY.md).
 
 ```sh
 npm install
-npm run build     # typecheck + production build to dist/
-npm run dev       # watch mode with source maps
+npm run build     # typecheck + production build to dist/chrome/ and dist/firefox/
+npm run build:chrome   # one target only (also build:firefox)
+npm run dev       # watch mode with source maps (dev:firefox for Firefox)
 npm test          # run after a build
 npm run socks     # local SOCKS5 server on 127.0.0.1:1080 for testing
-npm run package   # build and zip to release/
+npm run package   # build and zip both targets to release/
 ```
 
-Load the `dist/` folder with **Load unpacked**. After a rebuild, reload the extension and your open
+Load the `dist/chrome/` folder with **Load unpacked**. The Firefox build (`dist/firefox/`) is a
+work in progress and does not route traffic yet. After a rebuild, reload the extension and your open
 tabs. Testing, releases and design notes: [docs/DETAILS.md](docs/DETAILS.md) and
 [DESIGN.md](DESIGN.md).
 

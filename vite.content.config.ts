@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'node:path';
+import { alias, define, esTarget, outDir } from './vite.target.ts';
 
 // Content scripts are classic scripts, so each one is built on its own as a self-contained IIFE.
 // Usage: vite build -c vite.content.config.ts --mode main|bridge|worker|flow
@@ -7,10 +8,12 @@ import { resolve } from 'node:path';
 // worker only while its switch is on.)
 export default defineConfig(({ mode }) => ({
   publicDir: false,
+  resolve: { alias },
+  define,
   build: {
-    outDir: resolve(import.meta.dirname, 'dist'),
+    outDir,
     emptyOutDir: false,
-    target: 'chrome120',
+    target: esTarget,
     minify: process.env.NOLEAKER_DEV === '1' ? false : 'oxc',
     sourcemap: process.env.NOLEAKER_DEV === '1',
     lib: {

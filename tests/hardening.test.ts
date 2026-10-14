@@ -1,15 +1,15 @@
 import { createHash } from 'node:crypto';
 import { runInNewContext } from 'node:vm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { generatePac, BLOCK_PROXY } from '../src/shared/pac';
+import { generatePac, BLOCK_PROXY } from '../src/platform/chrome/pac';
 import { encodeGroups } from '../src/shared/iranlist';
 import { DEFAULT_STATE, migrateState } from '../src/shared/storage';
 import { exportSettings, parseSettings } from '../src/shared/settings';
 import { summarize } from '../src/shared/status';
 import { coreRules } from '../src/background/rules';
-import { LOCAL_RULE_IDS, setGuard, setLocalGuard } from '../src/background/guard';
+import { LOCAL_RULE_IDS, setGuard, setLocalGuard } from '../src/platform/chrome/guard';
 import { scopedSeed, sha256Hex } from '../src/shared/site-seed';
-import { syncProxy } from '../src/background/proxy';
+import { syncProxy } from '../src/platform/chrome/proxy';
 import { installGeolocation } from '../src/content/geolocation';
 import { installWebRtc } from '../src/content/webrtc';
 import { installWorkers } from '../src/content/workers';

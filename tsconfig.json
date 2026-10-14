@@ -11,7 +11,9 @@
     "noUnusedParameters": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "paths": { "@platform/*": ["./src/platform/chrome/*"] }
   },
-  "include": ["src", "tests", "vite.config.ts", "vite.content.config.ts"]
+  "include": ["src", "tests", "vite.config.ts", "vite.content.config.ts", "vite.target.ts"]
 }

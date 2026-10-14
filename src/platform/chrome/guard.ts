@@ -1,5 +1,5 @@
 /** Persistent request guard. Covers new DNR-visible requests, not existing sockets or OS traffic. */
-import { ALL_TYPES } from './rules';
+import { ALL_TYPES } from '../../background/rules';
 const GUARD_ID = 90;
 const PROBE_ID = 92;
 // Separate host families so every RE2 program stays below Chrome's compiled-memory limit.

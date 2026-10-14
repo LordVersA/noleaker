@@ -378,109 +378,115 @@ describe('audit analysis', () => {
 });
 
 // The real built bridge, with a fake page: does it notice a missing MAIN-world script?
-describe.skipIf(!existsSync('dist/content/bridge.js'))('built bridge: MAIN-world handshake', () => {
-  const HANDSHAKE = '__nl__';
+describe.skipIf(!existsSync('dist/chrome/content/bridge.js'))(
+  'built bridge: MAIN-world handshake',
+  () => {
+    const HANDSHAKE = '__nl__';
 
-  function boot(opts: {
-    mainPresent: boolean;
-    config?: unknown;
-    hostname?: string;
-    framed?: boolean;
-  }) {
-    const target = new EventTarget();
-    const timers: (() => void)[] = [];
-    const sent: unknown[] = [];
-    const win: Record<string, unknown> = {
-      addEventListener: target.addEventListener.bind(target),
-      removeEventListener: target.removeEventListener.bind(target),
-      dispatchEvent: target.dispatchEvent.bind(target),
-    };
-    win.window = win;
-    const config = opts.config ?? buildSpoofConfig(live());
-    const ctx = createContext({
-      ...win,
-      CustomEvent,
-      TextEncoder,
-      Event,
-      URL,
-      JSON,
-      setTimeout: (fn: () => void) => void timers.push(fn),
-      location: {
-        hostname: opts.hostname ?? 'news.example.com',
-        pathname: '/',
-        href: 'https://news.example.com/',
-        ancestorOrigins: [],
-      },
-      navigator: { serviceWorker: { controller: {} } },
-      performance: { getEntriesByType: () => [{ deliveryType: 'cache', type: 'navigate' }] },
-      chrome: {
-        storage: {
-          local: { get: async () => ({ [CONFIG_KEY]: config, workerPrelude: '/*p*/' }) },
-          onChanged: { addListener: () => undefined },
+    function boot(opts: {
+      mainPresent: boolean;
+      config?: unknown;
+      hostname?: string;
+      framed?: boolean;
+    }) {
+      const target = new EventTarget();
+      const timers: (() => void)[] = [];
+      const sent: unknown[] = [];
+      const win: Record<string, unknown> = {
+        addEventListener: target.addEventListener.bind(target),
+        removeEventListener: target.removeEventListener.bind(target),
+        dispatchEvent: target.dispatchEvent.bind(target),
+      };
+      win.window = win;
+      const config = opts.config ?? buildSpoofConfig(live());
+      const ctx = createContext({
+        ...win,
+        CustomEvent,
+        TextEncoder,
+        Event,
+        URL,
+        JSON,
+        setTimeout: (fn: () => void) => void timers.push(fn),
+        location: {
+          hostname: opts.hostname ?? 'news.example.com',
+          pathname: '/',
+          href: 'https://news.example.com/',
+          ancestorOrigins: [],
         },
-        runtime: { sendMessage: async (m: unknown) => void sent.push(m) },
-      },
-    });
-    runInContext(
-      `globalThis.window = globalThis; globalThis.top = ${opts.framed ? '{}' : 'globalThis'};`,
-      ctx,
-    );
-    if (opts.mainPresent) {
-      // A stand-in for the MAIN-world script: answers the bridge's hello with its page-specific
-      // name, then acknowledges every config message on that name.
-      const name = 'abc123';
-      target.addEventListener(HANDSHAKE, (e) => {
-        const hello = JSON.parse((e as CustomEvent<string>).detail);
-        if (hello.k === 'bridge') {
-          target.dispatchEvent(
-            new CustomEvent(HANDSHAKE, { detail: JSON.stringify({ k: 'main', n: name }) }),
-          );
-        }
+        navigator: { serviceWorker: { controller: {} } },
+        performance: { getEntriesByType: () => [{ deliveryType: 'cache', type: 'navigate' }] },
+        chrome: {
+          storage: {
+            local: { get: async () => ({ [CONFIG_KEY]: config, workerPrelude: '/*p*/' }) },
+            onChanged: { addListener: () => undefined },
+          },
+          runtime: { sendMessage: async (m: unknown) => void sent.push(m) },
+        },
       });
-      target.addEventListener(name, () => target.dispatchEvent(new Event(`${name}a`)));
+      runInContext(
+        `globalThis.window = globalThis; globalThis.top = ${opts.framed ? '{}' : 'globalThis'};`,
+        ctx,
+      );
+      if (opts.mainPresent) {
+        // A stand-in for the MAIN-world script: answers the bridge's hello with its page-specific
+        // name, then acknowledges every config message on that name.
+        const name = 'abc123';
+        target.addEventListener(HANDSHAKE, (e) => {
+          const hello = JSON.parse((e as CustomEvent<string>).detail);
+          if (hello.k === 'bridge') {
+            target.dispatchEvent(
+              new CustomEvent(HANDSHAKE, { detail: JSON.stringify({ k: 'main', n: name }) }),
+            );
+          }
+        });
+        target.addEventListener(name, () => target.dispatchEvent(new Event(`${name}a`)));
+      }
+      return {
+        ctx,
+        target,
+        timers,
+        sent,
+        run: () => runInContext(readFileSync('dist/chrome/content/bridge.js', 'utf8'), ctx),
+      };
     }
-    return {
-      ctx,
-      target,
-      timers,
-      sent,
-      run: () => runInContext(readFileSync('dist/content/bridge.js', 'utf8'), ctx),
+    const settle = async (env: ReturnType<typeof boot>) => {
+      env.run();
+      await new Promise((r) => setTimeout(r, 20));
+      while (env.timers.length) env.timers.shift()!();
+      await new Promise((r) => setTimeout(r, 20));
     };
-  }
-  const settle = async (env: ReturnType<typeof boot>) => {
-    env.run();
-    await new Promise((r) => setTimeout(r, 20));
-    while (env.timers.length) env.timers.shift()!();
-    await new Promise((r) => setTimeout(r, 20));
-  };
 
-  it('stays quiet when the MAIN-world script answers', async () => {
-    const env = boot({ mainPresent: true });
-    await settle(env);
-    expect(env.sent).toEqual([]);
-  });
-  it('reports a protected page whose MAIN-world script is missing, with how it was served', async () => {
-    const env = boot({ mainPresent: false });
-    await settle(env);
-    expect(env.sent).toEqual([
-      {
-        type: 'staleReport',
-        url: 'https://news.example.com/',
-        serviceWorker: true,
-        deliveryType: 'cache',
-        navigationType: 'navigate',
-      },
-    ]);
-  });
-  it('does not report when nothing is being spoofed, on whitelisted sites, or from frames', async () => {
-    for (const env of [
-      boot({ mainPresent: false, config: buildSpoofConfig({ ...live(), enabled: false }) }),
-      boot({ mainPresent: false, config: buildSpoofConfig(live({ whitelist: ['example.com'] })) }),
-      boot({ mainPresent: false, hostname: 'hcaptcha.com' }),
-      boot({ mainPresent: false, framed: true }),
-    ]) {
+    it('stays quiet when the MAIN-world script answers', async () => {
+      const env = boot({ mainPresent: true });
       await settle(env);
       expect(env.sent).toEqual([]);
-    }
-  });
-});
+    });
+    it('reports a protected page whose MAIN-world script is missing, with how it was served', async () => {
+      const env = boot({ mainPresent: false });
+      await settle(env);
+      expect(env.sent).toEqual([
+        {
+          type: 'staleReport',
+          url: 'https://news.example.com/',
+          serviceWorker: true,
+          deliveryType: 'cache',
+          navigationType: 'navigate',
+        },
+      ]);
+    });
+    it('does not report when nothing is being spoofed, on whitelisted sites, or from frames', async () => {
+      for (const env of [
+        boot({ mainPresent: false, config: buildSpoofConfig({ ...live(), enabled: false }) }),
+        boot({
+          mainPresent: false,
+          config: buildSpoofConfig(live({ whitelist: ['example.com'] })),
+        }),
+        boot({ mainPresent: false, hostname: 'hcaptcha.com' }),
+        boot({ mainPresent: false, framed: true }),
+      ]) {
+        await settle(env);
+        expect(env.sent).toEqual([]);
+      }
+    });
+  },
+);

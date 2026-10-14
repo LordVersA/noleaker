@@ -6,10 +6,10 @@ import { GPU_MODELS } from '../src/shared/gpus';
 import { SHIELD_DEFAULTS } from '../src/shared/shields';
 import type { SpoofConfig } from '../src/shared/spoof-config';
 
-const BUNDLE = 'dist/content/worker.js';
+const BUNDLE = 'dist/chrome/content/worker.js';
 
 // Runs the real built prelude, exactly as the wrapper blob would, in a fake worker realm.
-describe.skipIf(!existsSync(BUNDLE))('built worker prelude (dist/content/worker.js)', () => {
+describe.skipIf(!existsSync(BUNDLE))('built worker prelude (dist/chrome/content/worker.js)', () => {
   const model = GPU_MODELS.find((m) => m.description === 'Apple M1')!;
   const config: SpoofConfig = {
     active: true,

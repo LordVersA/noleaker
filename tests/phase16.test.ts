@@ -854,8 +854,8 @@ describe('Flow bounce', () => {
 
 // --- the built script, when a build exists -----------------------------------------------------------------------
 
-describe.skipIf(!existsSync('dist/content/flow.js'))('built Flow script', () => {
-  const source = () => readFileSync('dist/content/flow.js', 'utf8');
+describe.skipIf(!existsSync('dist/chrome/content/flow.js'))('built Flow script', () => {
+  const source = () => readFileSync('dist/chrome/content/flow.js', 'utf8');
   it('is a self-contained classic script', () => {
     expect(source()).not.toMatch(/^\s*(import|export)\s/m);
   });
@@ -880,7 +880,7 @@ describe.skipIf(!existsSync('dist/content/flow.js'))('built Flow script', () => 
 
 describe('manifest', () => {
   it('declares no static Flow script: the service worker registers it only while the switch is on', () => {
-    const manifest = JSON.parse(readFileSync('public/manifest.json', 'utf8'));
+    const manifest = JSON.parse(readFileSync('manifests/manifest.chrome.json', 'utf8'));
     const matches = manifest.content_scripts.flatMap((s: any) => s.matches);
     expect(matches).not.toContain(FLOW_MATCHES[0]);
     expect(manifest.permissions).toContain('scripting');

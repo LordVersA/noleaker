@@ -31,101 +31,100 @@ const live = (over: Partial<State> = {}): State => ({
 });
 
 // --- the real built scripts, started in either order, with nothing fixed left for the page --------
-describe.skipIf(!existsSync('dist/content/main.js') || !existsSync('dist/content/bridge.js'))(
-  'built scripts: unguessable event names',
-  () => {
-    function boot(order: 'bridge-first' | 'main-first', state: State) {
-      const target = new EventTarget();
-      const seen: string[] = [];
-      const config = buildSpoofConfig(state);
-      const ctx = createContext({
-        addEventListener: target.addEventListener.bind(target),
-        removeEventListener: target.removeEventListener.bind(target),
-        dispatchEvent: (e: Event) => {
-          seen.push(e.type);
-          return target.dispatchEvent(e);
+describe.skipIf(
+  !existsSync('dist/chrome/content/main.js') || !existsSync('dist/chrome/content/bridge.js'),
+)('built scripts: unguessable event names', () => {
+  function boot(order: 'bridge-first' | 'main-first', state: State) {
+    const target = new EventTarget();
+    const seen: string[] = [];
+    const config = buildSpoofConfig(state);
+    const ctx = createContext({
+      addEventListener: target.addEventListener.bind(target),
+      removeEventListener: target.removeEventListener.bind(target),
+      dispatchEvent: (e: Event) => {
+        seen.push(e.type);
+        return target.dispatchEvent(e);
+      },
+      CustomEvent,
+      TextEncoder,
+      Event,
+      URL,
+      crypto: webcrypto,
+      setTimeout: () => 0,
+      location: {
+        hostname: 'news.example.com',
+        pathname: '/',
+        href: 'https://news.example.com/',
+        ancestorOrigins: [],
+      },
+      navigator: {},
+      performance: { getEntriesByType: () => [] },
+      chrome: {
+        storage: {
+          local: { get: async () => ({ [CONFIG_KEY]: config, workerPrelude: '/*p*/' }) },
+          onChanged: { addListener: () => undefined },
         },
-        CustomEvent,
-        TextEncoder,
-        Event,
-        URL,
-        crypto: webcrypto,
-        setTimeout: () => 0,
-        location: {
-          hostname: 'news.example.com',
-          pathname: '/',
-          href: 'https://news.example.com/',
-          ancestorOrigins: [],
-        },
-        navigator: {},
-        performance: { getEntriesByType: () => [] },
-        chrome: {
-          storage: {
-            local: { get: async () => ({ [CONFIG_KEY]: config, workerPrelude: '/*p*/' }) },
-            onChanged: { addListener: () => undefined },
-          },
-          runtime: { sendMessage: async () => undefined },
-        },
-      });
-      runInContext('globalThis.window = globalThis; globalThis.top = globalThis;', ctx);
-      const main = readFileSync('dist/content/main.js', 'utf8');
-      const bridge = readFileSync('dist/content/bridge.js', 'utf8');
-      for (const code of order === 'bridge-first' ? [bridge, main] : [main, bridge]) {
-        runInContext(code, ctx);
-      }
-      const settled = new Promise((r) => setTimeout(r, 30));
-      return {
-        target,
-        seen,
-        ctx,
-        settled,
-        run: <T = unknown>(c: string) => runInContext(c, ctx) as T,
-      };
+        runtime: { sendMessage: async () => undefined },
+      },
+    });
+    runInContext('globalThis.window = globalThis; globalThis.top = globalThis;', ctx);
+    const main = readFileSync('dist/chrome/content/main.js', 'utf8');
+    const bridge = readFileSync('dist/chrome/content/bridge.js', 'utf8');
+    for (const code of order === 'bridge-first' ? [bridge, main] : [main, bridge]) {
+      runInContext(code, ctx);
     }
-    const hours = 'new Date(Date.UTC(2020, 0, 15, 12)).getHours()';
-    it('uses UTC before async configuration delivery and switches to the exit afterward', async () => {
-      const env = boot('main-first', live());
-      expect(env.run('Intl.DateTimeFormat().resolvedOptions().timeZone')).toBe('UTC');
-      expect(env.run(hours)).toBe(12);
-      await env.settled;
-      expect(env.run('Intl.DateTimeFormat().resolvedOptions().timeZone')).toBe('Europe/Berlin');
-    });
+    const settled = new Promise((r) => setTimeout(r, 30));
+    return {
+      target,
+      seen,
+      ctx,
+      settled,
+      run: <T = unknown>(c: string) => runInContext(c, ctx) as T,
+    };
+  }
+  const hours = 'new Date(Date.UTC(2020, 0, 15, 12)).getHours()';
+  it('uses UTC before async configuration delivery and switches to the exit afterward', async () => {
+    const env = boot('main-first', live());
+    expect(env.run('Intl.DateTimeFormat().resolvedOptions().timeZone')).toBe('UTC');
+    expect(env.run(hours)).toBe(12);
+    await env.settled;
+    expect(env.run('Intl.DateTimeFormat().resolvedOptions().timeZone')).toBe('Europe/Berlin');
+  });
 
-    for (const order of ['bridge-first', 'main-first'] as const) {
-      it(`works when the ${order.replace('-', ' ')} script starts first`, async () => {
-        const env = boot(order, live());
-        await env.settled;
-        expect(env.run(hours)).toBe(13); // Berlin: the config reached the MAIN-world script
-      });
+  for (const order of ['bridge-first', 'main-first'] as const) {
+    it(`works when the ${order.replace('-', ' ')} script starts first`, async () => {
+      const env = boot(order, live());
+      await env.settled;
+      expect(env.run(hours)).toBe(13); // Berlin: the config reached the MAIN-world script
+    });
+  }
+
+  it('uses one fixed name only for the start-up handshake, and invents the rest per page load', async () => {
+    const a = boot('bridge-first', live());
+    const b = boot('main-first', live());
+    await Promise.all([a.settled, b.settled]);
+    for (const env of [a, b]) {
+      const names = [...new Set(env.seen)];
+      const fixed = names.filter((n) => !/^[0-9a-f]{16}a?$/.test(n));
+      expect(fixed).toEqual(['__nl__']);
+      expect(names.some((n) => /noleaker/i.test(n))).toBe(false);
+      expect(names.filter((n) => /^[0-9a-f]{16}$/.test(n))).toHaveLength(1); // the config channel
+      expect(names.filter((n) => /^[0-9a-f]{16}a$/.test(n))).toHaveLength(1); // its acknowledgement
     }
+    const channel = (env: typeof a) => env.seen.find((n) => /^[0-9a-f]{16}$/.test(n));
+    expect(channel(a)).not.toBe(channel(b));
+  });
 
-    it('uses one fixed name only for the start-up handshake, and invents the rest per page load', async () => {
-      const a = boot('bridge-first', live());
-      const b = boot('main-first', live());
-      await Promise.all([a.settled, b.settled]);
-      for (const env of [a, b]) {
-        const names = [...new Set(env.seen)];
-        const fixed = names.filter((n) => !/^[0-9a-f]{16}a?$/.test(n));
-        expect(fixed).toEqual(['__nl__']);
-        expect(names.some((n) => /noleaker/i.test(n))).toBe(false);
-        expect(names.filter((n) => /^[0-9a-f]{16}$/.test(n))).toHaveLength(1); // the config channel
-        expect(names.filter((n) => /^[0-9a-f]{16}a$/.test(n))).toHaveLength(1); // its acknowledgement
-      }
-      const channel = (env: typeof a) => env.seen.find((n) => /^[0-9a-f]{16}$/.test(n));
-      expect(channel(a)).not.toBe(channel(b));
-    });
-
-    it('stops answering the handshake once it is done (a late page script learns nothing)', async () => {
-      const env = boot('bridge-first', live());
-      await env.settled;
-      const before = env.seen.length;
-      env.target.dispatchEvent(
-        new CustomEvent('__nl__', { detail: JSON.stringify({ k: 'bridge' }) }),
-      );
-      expect(env.seen.length).toBe(before); // nobody replies: the MAIN script no longer listens
-    });
-  },
-);
+  it('stops answering the handshake once it is done (a late page script learns nothing)', async () => {
+    const env = boot('bridge-first', live());
+    await env.settled;
+    const before = env.seen.length;
+    env.target.dispatchEvent(
+      new CustomEvent('__nl__', { detail: JSON.stringify({ k: 'bridge' }) }),
+    );
+    expect(env.seen.length).toBe(before); // nobody replies: the MAIN script no longer listens
+  });
+});
 
 // --- every patched API against a pristine realm --------------------------------------------------
 describe('patched APIs are indistinguishable from a pristine realm', () => {

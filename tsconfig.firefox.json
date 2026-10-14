@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": { "@platform/*": ["./src/platform/firefox/*"] }
+  },
+  "include": ["src"]
+}

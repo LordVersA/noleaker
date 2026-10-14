@@ -251,7 +251,7 @@ and an empty ICE result alone do not prove that all network traffic is protected
 Pushing a version tag (for example `v0.1.0`) automatically installs locked dependencies, checks
 formatting/lint, builds minified production bundles, runs the full test suite and publishes the
 extension ZIP plus `SHA256SUMS.txt` to GitHub Releases. The tag must match the versions in
-`package.json` and `public/manifest.json`.
+`package.json` and both `manifests/manifest.*.json`.
 
 After committing and pushing the release changes:
 

@@ -1,7 +1,8 @@
 import { getState } from '../shared/storage';
 import { type CheckResult, type CheckStatus } from './analyze';
 import { ROWS, runAll } from './checks';
-import { LOCAL_RULE_IDS } from '../background/guard';
+import { LOCAL_RULE_IDS } from '@platform/guard';
+import { readProxyControl } from '@platform/control';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const list = $('results');
@@ -114,7 +115,7 @@ $('read-controls').addEventListener('click', async () => {
   try {
     const [state, proxy, prediction, rtc, rules, incognito] = await Promise.all([
       getState(),
-      chrome.proxy.settings.get({ incognito: false }),
+      readProxyControl(),
       chrome.privacy.network.networkPredictionEnabled.get({}),
       chrome.privacy.network.webRTCIPHandlingPolicy.get({}),
       chrome.declarativeNetRequest.getDynamicRules(),
@@ -138,11 +139,7 @@ $('read-controls').addEventListener('click', async () => {
       killSwitchActive: state.killSwitchActive,
       protectionError: state.protectionError,
       controlsVerifiedAt: state.controlsVerifiedAt,
-      proxy: {
-        levelOfControl: proxy.levelOfControl,
-        mode: proxy.value.mode,
-        mandatory: proxy.value.pacScript?.mandatory === true,
-      },
+      proxy: { ...proxy, pac: undefined }, // the PAC itself is too large to show
       prediction: { levelOfControl: prediction.levelOfControl, value: prediction.value },
       webrtc: { levelOfControl: rtc.levelOfControl, value: rtc.value },
       ruleIds: rules.map((rule) => rule.id).sort((a, b) => a - b),

@@ -47,10 +47,12 @@ jobs:
           node --input-type=module <<'JS'
           import { readFileSync } from 'node:fs';
           const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-          const manifest = JSON.parse(readFileSync('public/manifest.json', 'utf8'));
           const tag = process.env.RELEASE_TAG;
-          if (!/^v\d+\.\d+\.\d+$/.test(tag) || tag !== `v${pkg.version}` || manifest.version !== pkg.version) {
-            throw new Error('Release tag, package.json and manifest.json versions must match.');
+          const versions = ['chrome', 'firefox'].map(
+            (t) => JSON.parse(readFileSync(`manifests/manifest.${t}.json`, 'utf8')).version,
+          );
+          if (!/^v\d+\.\d+\.\d+$/.test(tag) || tag !== `v${pkg.version}` || versions.some((v) => v !== pkg.version)) {
+            throw new Error('Release tag, package.json and both manifest versions must match.');
           }
           JS
           git show-ref --verify "refs/tags/$RELEASE_TAG"
@@ -69,6 +71,7 @@ jobs:
       - name: Run complete test suite against production bundles
         run: npm test
 
+      # The Firefox .xpi is built but not published until AMO signing is set up.
       - name: Create checksum
         run: |
           cd release

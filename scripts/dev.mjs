@@ -1,4 +1,5 @@
 // Build once, then watch each bundle in its own Vite process.
+// Usage: node scripts/dev.mjs [chrome|firefox] (default chrome) → dist/<target>/.
 import { execFileSync, spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 
@@ -12,7 +13,9 @@ const builds = [
     mode,
   ]),
 ];
-const env = { ...process.env, NOLEAKER_DEV: '1' };
+const target = process.argv[2] ?? 'chrome';
+if (target !== 'chrome' && target !== 'firefox') throw new Error('usage: dev.mjs [chrome|firefox]');
+const env = { ...process.env, NOLEAKER_DEV: '1', NOLEAKER_TARGET: target };
 const children = new Set();
 let stopping = false;
 
@@ -47,7 +50,7 @@ try {
     });
   }
   console.log(
-    'Watching UI, background, main, bridge, worker and Flow. Reload the extension after changes.',
+    `Watching ${target}: UI, background, main, bridge, worker and Flow. Reload the extension after changes.`,
   );
 } catch (error) {
   console.error(error);

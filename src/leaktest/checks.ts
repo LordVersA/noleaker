@@ -13,6 +13,7 @@ import {
   type CheckResult,
   type PageSample,
 } from './analyze';
+import { readProxyControl } from '@platform/control';
 
 export interface CheckDef {
   id: string;
@@ -89,10 +90,10 @@ async function checkIp(state: State): Promise<CheckResult> {
 }
 
 async function checkConfig(): Promise<CheckResult> {
-  const { value, levelOfControl } = await chrome.proxy.settings.get({ incognito: false });
-  const result = analyzeProxyConfig(value.mode, value.pacScript?.data, levelOfControl);
+  const proxy = await readProxyControl();
+  const result = analyzeProxyConfig(proxy.mode, proxy.pac, proxy.levelOfControl);
   if (result.status !== 'pass') return result;
-  if (value.pacScript?.mandatory !== true)
+  if (!proxy.mandatory)
     return {
       ...result,
       status: 'fail',

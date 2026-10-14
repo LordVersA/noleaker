@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { hostMatches, normalizeDomain, parseDomainLines } from '../src/shared/domains';
 import { countGroups, decodeGroups, encodeGroups, parseDomainList } from '../src/shared/iranlist';
-import { generatePac } from '../src/shared/pac';
+import { generatePac } from '../src/platform/chrome/pac';
 
 const profile = { id: '1', name: 'p', host: 'proxy.example', port: 1080 };
 const find = (pac: string, host: string) =>

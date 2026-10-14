@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { encodeGroups } from '../src/shared/iranlist';
-import { generatePac } from '../src/shared/pac';
+import { generatePac } from '../src/platform/chrome/pac';
 
 const find = (host: string, profile = { id: '1', name: 'p', host: 'proxy.example', port: 1080 }) =>
   new Function(`${generatePac(profile)}; return FindProxyForURL;`)()(`http://${host}/`, host);

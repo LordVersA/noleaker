@@ -1,6 +1,6 @@
-import type { Groups } from './iranlist';
-import { PROBE_HOSTS } from './lookup';
-import type { ProxyProfile } from './types';
+import type { Groups } from '../../shared/iranlist';
+import { PROBE_HOSTS } from '../../shared/lookup';
+import type { ProxyProfile } from '../../shared/types';
 
 /** Dead-end proxy used by the kill switch: connections are refused, never sent direct. */
 export const BLOCK_PROXY = 'PROXY 127.0.0.1:1';
