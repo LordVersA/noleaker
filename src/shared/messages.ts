@@ -14,6 +14,8 @@ export interface MessageMap {
     response: { ok: boolean; error?: string };
   };
   ping: { request: { type: 'ping' }; response: 'pong' };
+  /** Host of the sender's tab: frames use it where location.ancestorOrigins is missing. */
+  topHost: { request: { type: 'topHost' }; response: string };
   getState: { request: { type: 'getState' }; response: State };
   updateIranList: {
     request: { type: 'updateIranList' };

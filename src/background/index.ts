@@ -12,6 +12,14 @@ function requireOptions(sender: chrome.runtime.MessageSender): void {
 
 listen({
   ping: () => 'pong',
+  topHost: (_message, sender) => {
+    if (__BROWSER__ !== 'firefox') return '';
+    try {
+      return new URL(sender.tab?.url ?? '').hostname;
+    } catch {
+      return '';
+    }
+  },
   getState: () => getState(),
   updateIranList: (_message, sender) => {
     requireOptions(sender);

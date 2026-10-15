@@ -18,10 +18,22 @@ let pushVersion = 0;
 /** The event name the MAIN-world script chose for this page load; null until the handshake. */
 let name: string | null = null;
 
+let topHost: Promise<string> | undefined;
+
 /** The site the user sees: the top-level host, also from inside frames. */
-function topHostname(): string {
+function topHostname(): Promise<string> {
+  return (topHost ??= findTopHostname());
+}
+
+async function findTopHostname(): Promise<string> {
   if (window === window.top) return location.hostname;
   const origins = location.ancestorOrigins;
+  // Firefox before 151 has no ancestorOrigins: the background knows the tab's URL.
+  if (__BROWSER__ === 'firefox' && !origins)
+    return sendMessage({ type: 'topHost' }).then(
+      (host) => host || location.hostname,
+      () => location.hostname,
+    );
   const top = origins?.[origins.length - 1];
   try {
     return top ? new URL(top).hostname : location.hostname;
@@ -72,11 +84,12 @@ function verifyMain(): void {
 
 async function push(retry = false): Promise<void> {
   const version = ++pushVersion;
+  const host = await topHostname();
+  if (version !== pushVersion) return;
   // Whitelisted sites, and captcha frames wherever they are embedded, get no spoofing.
   const skip =
-    hostMatches(topHostname(), current.whitelist ?? []) ||
+    hostMatches(host, current.whitelist ?? []) ||
     (!current.strict && isCaptchaPage(location.hostname, location.pathname));
-  const host = topHostname();
   // Derive a per-top-level-host seed without revealing the reusable profile identifier.
   const config: SpoofConfig = skip
     ? { ...INACTIVE_CONFIG, stealth: current.stealth === true }

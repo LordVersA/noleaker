@@ -3,7 +3,7 @@
 Port of [`../noleaker`](../noleaker) (Chrome MV3, v0.1.1) to Firefox desktop.
 The work happens **inside the `noleaker` repo** as a second build target; this file is only the plan.
 
-Date: 2026-10-14. Status: Phase 0, 1b, 2 and 3 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
+Date: 2026-10-14. Status: Phase 0, 1b, 2, 3 and 4 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
 
 ## 1. Decisions
 
@@ -284,6 +284,32 @@ Accept-Language matches, the badge follows the private-window setting, RFP turns
 
 **Done when:** the built-in leak test shows timezone, locale, `Intl`, `Date` and workers all matching
 the exit, with stealth on and off, on the browser-fixtures pages.
+
+#### Phase 4 results (2026-10-15)
+
+Done in code, with unit tests (`tests/firefox-content.test.ts`):
+
+- Content scripts already build per target (`esTarget` is `firefox140` for Firefox); nothing else
+  to change in the build.
+- Stealth: `scrubStack` drops `moz-extension://` frames (Firefox `fn@url:line:col`) as well as
+  `chrome-extension://`. Patched functions no longer hard-code Chrome's toString text: they copy the
+  real original's `[native code]` string, or the engine's own format read from
+  `Function.prototype.toString` (Firefox puts `[native code]` on its own indented line).
+- Bridge: Firefox ESR 140 has no `location.ancestorOrigins` (it shipped around Firefox 150), so
+  frames would use their own host for the whitelist and the per-site seed. In Firefox builds a
+  frame without it asks the background (`topHost` message → host of `sender.tab.url`).
+- Unchanged after review: the handshake (JSON strings in `CustomEvent.detail` cross Xray safely),
+  the worker blob prelude (the blob is made in the page realm, so CSP and `importScripts` behave as
+  in Chrome; the existing `securitypolicyviolation` fallback covers `blob:`-less CSPs),
+  `deliveryType` (missing in Firefox, already read as `''`), and `scripting.executeScript` with
+  `world: 'MAIN'` in the popup and leak test (Firefox 128+).
+- Chrome bundle +286 bytes (baseline updated).
+
+**Not verified (needs a real Firefox):** the "Done when" checks on the browser-fixtures pages;
+MAIN-world run order against inline page scripts (spike 3); whether Firefox lets `stack` be
+reassigned on `DOMException` objects thrown by patches (if not, those keep their frames: stealth is
+weaker there, nothing breaks); and the exact toString text of Firefox's native getters (copied from
+the real getter, so it should match).
 
 ### Phase 5: UI, Iran list, settings
 

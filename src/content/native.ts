@@ -59,7 +59,8 @@ export function scrubStack(error: unknown): void {
     if (e && typeof e === 'object' && typeof e.stack === 'string') {
       e.stack = e.stack
         .split('\n')
-        .filter((line) => !line.includes('chrome-extension://'))
+        // Chrome: `at f (chrome-extension://…)`; Firefox: `f@moz-extension://…`.
+        .filter((line) => !/(chrome|moz)-extension:\/\//.test(line))
         .join('\n');
     }
   } catch {
@@ -113,11 +114,28 @@ export function createNative(g: any, options: { strict?: boolean } = {}): Native
     }
   }
 
-  const toStringProxy = new Proxy(protoFn.toString, {
+  // The engine's own format: Chrome `function f() { [native code] }`, Firefox puts
+  // `[native code]` on its own indented line. Read it from toString itself, never hard-code it.
+  const realToString = protoFn.toString;
+  const sample: string = Reflect.apply(realToString, realToString, []);
+  /** What toString shows for a native function named `name`, or for the real `original`. */
+  function nativeSource(name: string, original?: Function): string {
+    const own = original && nativeStrings.get(original);
+    if (own) return own;
+    try {
+      const real: string | undefined = original && Reflect.apply(realToString, original, []);
+      if (real?.includes('[native code]')) return real;
+    } catch {
+      // a revoked Proxy or an exotic object: use the generic form
+    }
+    return sample.replace('toString', () => name);
+  }
+
+  const toStringProxy = new Proxy(realToString, {
     apply: (target, thisArg, args) =>
       guarded(() => nativeStrings.get(thisArg) ?? Reflect.apply(target, thisArg, args)),
   });
-  nativeStrings.set(toStringProxy, 'function toString() { [native code] }');
+  nativeStrings.set(toStringProxy, sample);
   define(protoFn, 'toString', toStringProxy);
 
   function method(
@@ -136,7 +154,7 @@ export function createNative(g: any, options: { strict?: boolean } = {}): Native
       shapes.push([fn, original]);
       if (native.strict) mirrorShape(fn, original);
     }
-    nativeStrings.set(fn, `function ${name}() { [native code] }`);
+    nativeStrings.set(fn, nativeSource(name, original));
     return fn;
   }
 
@@ -203,7 +221,7 @@ export function createNative(g: any, options: { strict?: boolean } = {}): Native
             : Reflect.apply(target, thisArg, args),
         ),
     });
-    nativeStrings.set(P, `function ${name}() { [native code] }`);
+    nativeStrings.set(P, nativeSource(name, Native));
     define(owner, name, P);
     define(Native.prototype, 'constructor', P);
     patched.push({ owner, key: name, kind: 'constructor' });
