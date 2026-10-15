@@ -2,7 +2,7 @@ import { parseDomainLines } from './domains';
 import { sanitizeOverrides } from './overrides';
 import { normalizeShields } from './shields';
 import type { ProxyProfile, State } from './types';
-import { validateProfile } from './validate';
+import { validateCredentials, validateProfile } from './validate';
 
 const FORMAT = 'noleaker-settings';
 /**
@@ -84,6 +84,10 @@ export function parseSettings(text: string): ImportResult {
             password: typeof p.password === 'string' ? p.password : '',
           }
         : {};
+    const authError =
+      credentials.username !== undefined &&
+      validateCredentials(credentials.username, credentials.password);
+    if (authError) return { ok: false, error: `Proxy "${p.name}": ${authError}` };
     profiles.push({ id: p.id, name: p.name.trim(), host, port, ...credentials });
   }
 

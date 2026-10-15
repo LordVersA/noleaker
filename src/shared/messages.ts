@@ -2,6 +2,14 @@ import type { ExitRefresh } from './exit';
 import type { StaleReport } from './stale';
 import type { State } from './types';
 
+/** Effective proxy setup, as checked before guard release and shown by the leak test. */
+export interface ProxyControl {
+  levelOfControl: string;
+  mode: string;
+  pac: string | undefined;
+  mandatory: boolean;
+}
+
 /** Request type -> response type. Add new messages here. */
 export interface MessageMap {
   staleReport: {
@@ -16,6 +24,8 @@ export interface MessageMap {
   ping: { request: { type: 'ping' }; response: 'pong' };
   /** Host of the sender's tab: frames use it where location.ancestorOrigins is missing. */
   topHost: { request: { type: 'topHost' }; response: string };
+  /** The background's view of proxy control (Firefox: only it holds the onRequest listener). */
+  proxyControl: { request: { type: 'proxyControl' }; response: ProxyControl };
   getState: { request: { type: 'getState' }; response: State };
   updateIranList: {
     request: { type: 'updateIranList' };

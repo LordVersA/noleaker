@@ -3,7 +3,7 @@
 Port of [`../noleaker`](../noleaker) (Chrome MV3, v0.1.1) to Firefox desktop.
 The work happens **inside the `noleaker` repo** as a second build target; this file is only the plan.
 
-Date: 2026-10-14. Status: Phase 0, 1b, 2, 3 and 4 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
+Date: 2026-10-14. Status: Phase 0, 1b, 2, 3, 4 and 5 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
 
 ## 1. Decisions
 
@@ -321,6 +321,29 @@ the real getter, so it should match).
 
 **Done when:** every popup, options and leak-test action works in Firefox, and a settings export
 from Chrome imports into Firefox (and back).
+
+#### Phase 5 results (2026-10-15)
+
+Done in code, with unit tests (`tests/socks-auth.test.ts`):
+
+- **Bug fixed:** the leak test's "Proxy and DNS configuration" check always failed in Firefox. The
+  leak-test page looked for the `proxy.onRequest` listener in its own context, but only the
+  background page holds it. Firefox's `readProxyControl` now asks the background
+  (`proxyControl` message), and `analyzeProxyConfig` accepts Firefox's `on_request` mode.
+  `ProxyControl` moved to `shared/messages.ts`.
+- Wording: "Chrome's proxy settings" → "The browser's proxy settings"; the options sidebar says
+  "optional username and password" in Firefox; the incognito note covers private windows too.
+  Auth fields, the private-window notice and the RFP note were already Firefox-only (Phases 2–3).
+- Settings: an import whose credentials break RFC 1929 is rejected; stored state keeps credentials
+  only as a pair of strings, so a malformed profile cannot reach `proxy.onRequest`. Chrome keeps
+  imported credentials (Phase 2), so a Firefox export round-trips through Chrome.
+- Iran list: the daily alarm and the approval flow need no change. The alarm listener is registered
+  at the top level of the background script, and the Options sender check
+  (`getURL('options/index.html')`) also matches Firefox's `options_ui` page.
+- Chrome bundle +516 bytes for credential validation on import (baseline updated).
+
+**Not verified (needs a real Firefox):** the "Done when" checks (every popup, options and leak-test
+action, and a Chrome ⇄ Firefox settings round trip done by hand).
 
 ### Phase 6: Tests and CI
 

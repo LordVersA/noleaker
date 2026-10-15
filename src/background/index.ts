@@ -1,4 +1,5 @@
 import '@platform/wiring';
+import { readProxyControl } from '@platform/control';
 import { listen } from '../shared/messages';
 import { getState, onStateChanged } from '../shared/storage';
 import { UPDATE_ALARM, updateIranList, approveIranList } from './iranlist';
@@ -31,6 +32,10 @@ listen({
   },
   staleReport: (message, sender) => handleStaleReport(message, sender),
   refreshExit: () => refreshExitNow(),
+  proxyControl: () => {
+    if (__BROWSER__ !== 'firefox') throw new Error('Firefox only.');
+    return readProxyControl();
+  },
 });
 
 // Alarms survive worker restarts, but make sure they exist after updates or cleared data.

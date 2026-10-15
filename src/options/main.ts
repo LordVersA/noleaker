@@ -21,7 +21,10 @@ const hostEl = $<HTMLInputElement>('host');
 const portEl = $<HTMLInputElement>('port');
 // SOCKS authentication works only through Firefox's proxy API; Chrome's PAC cannot carry it.
 const AUTH = __BROWSER__ === 'firefox';
-if (AUTH) for (const el of document.querySelectorAll<HTMLElement>('.auth')) el.hidden = false;
+if (AUTH) {
+  for (const el of document.querySelectorAll<HTMLElement>('.auth')) el.hidden = false;
+  $('auth-foot').textContent = 'optional username and password';
+}
 
 let editingId: string | null = null;
 

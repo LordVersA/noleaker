@@ -218,10 +218,18 @@ export function analyzeProxyConfig(
     return {
       ...base,
       status: 'fail',
-      detail: `Chrome's proxy settings are not controlled by noleaker (${level}).`,
+      detail: `The browser's proxy settings are not controlled by noleaker (${level}).`,
       fix: { text: 'Disable other proxy extensions (for example FoxyProxy) or system overrides.' },
     };
   }
+  // Firefox: every request is routed by noleaker's proxy.onRequest listener (SOCKS5, proxyDNS).
+  if (__BROWSER__ === 'firefox' && mode === 'on_request')
+    return {
+      ...base,
+      status: 'pass',
+      detail:
+        'Each request is routed by noleaker (SOCKS5 with remote DNS, no direct fallback). (Configuration check, not a DNS probe.)',
+    };
   if (mode !== 'pac_script' || !pacData) {
     return {
       ...base,

@@ -108,6 +108,12 @@ export function migrateState(raw: unknown): State {
       typeof p.host === 'string' &&
       Number.isInteger(p.port),
   );
+  // Credentials are kept only as a pair of strings (Firefox hands them to proxy.onRequest).
+  state.profiles = state.profiles.map(({ username, password, ...p }) =>
+    typeof username === 'string' && username && typeof password === 'string'
+      ? { ...p, username, password }
+      : p,
+  );
   if (!state.profiles.some((p) => p.id === state.activeProfileId)) {
     state.activeProfileId = state.profiles[0]?.id ?? null;
   }

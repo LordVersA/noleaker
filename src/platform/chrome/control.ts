@@ -1,9 +1,4 @@
-export interface ProxyControl {
-  levelOfControl: string;
-  mode: string;
-  pac: string | undefined;
-  mandatory: boolean;
-}
+import type { ProxyControl } from '../../shared/messages';
 
 /** Effective Chrome proxy setting, as checked before guard release and shown by the leak test. */
 export async function readProxyControl(): Promise<ProxyControl> {

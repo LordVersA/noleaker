@@ -60,7 +60,8 @@
           <a href="#tools">Tools</a>
         </nav>
         <p class="side-foot muted">
-          SOCKS5 · DNS through the proxy · no username or password. Hover or focus a
+          SOCKS5 · DNS through the proxy ·
+          <span id="auth-foot">no username or password</span>. Hover or focus a
           <span class="hint static">?</span> for details.
         </p>
       </aside>
@@ -99,8 +100,9 @@
           </p>
           <p class="muted">
             Startup scripts, new iframe realms and unsupported workers can still reveal native
-            values. Incognito spoofing requires enabling the extension there. Use an OS firewall or
-            VPN kill switch for enforcement outside browser controls.
+            values. Private (incognito) windows are protected only when the extension is allowed to
+            run there. Use an OS firewall or VPN kill switch for enforcement outside browser
+            controls.
           </p>
         </section>
         <section class="group" id="proxies">
