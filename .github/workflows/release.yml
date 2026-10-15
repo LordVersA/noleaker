@@ -106,6 +106,24 @@ jobs:
           cd release
           sha256sum noleaker-*.zip $(ls noleaker-firefox-*.xpi updates.json 2>/dev/null) > SHA256SUMS.txt
 
+      # Release notes: commits since the previous tag, grouped by conventional-commit type.
+      - name: Write changelog
+        run: |
+          prev=$(git describe --tags --abbrev=0 --match 'v*' "$RELEASE_TAG^" 2>/dev/null || true)
+          commits=$(git log --no-merges --format='- %s (%h)' "${prev:+$prev..}$RELEASE_TAG" | grep -v '^- chore: release' || true)
+          section() {
+            lines=$(printf '%s\n' "$commits" | grep -E "$2" || true)
+            if [ -n "$lines" ]; then printf '## %s\n\n%s\n\n' "$1" "$lines"; fi
+          }
+          {
+            section Features '^- feat'
+            section Fixes '^- fix'
+            other=$(printf '%s\n' "$commits" | grep -vE '^- (feat|fix)|^$' || true)
+            if [ -n "$other" ]; then printf '## Other changes\n\n%s\n\n' "$other"; fi
+            if [ -n "$prev" ]; then echo "**Full changelog**: https://github.com/$GITHUB_REPOSITORY/compare/$prev...$RELEASE_TAG"; fi
+          } > "$RUNNER_TEMP/notes.md"
+          cat "$RUNNER_TEMP/notes.md"
+
       - name: Publish release assets with GitHub CLI
         env:
           GH_TOKEN: ${{ github.token }}
@@ -117,5 +135,5 @@ jobs:
             gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
           else
             gh release create "$RELEASE_TAG" "${files[@]}" \
-              --verify-tag --title "noleaker $RELEASE_TAG" --generate-notes
+              --verify-tag --title "noleaker $RELEASE_TAG" --notes-file "$RUNNER_TEMP/notes.md"
           fi
