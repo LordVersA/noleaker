@@ -33,7 +33,13 @@ describe.skipIf(!existsSync('dist/chrome/background.js'))('Chrome bundle', () =>
 describe.skipIf(!existsSync('dist/firefox/background.js'))('Firefox bundle', () => {
   it('contains no Chrome PAC or proxy-settings code', () => {
     const bg = readFileSync('dist/firefox/background.js', 'utf8');
-    for (const s of ['pac_script', 'FindProxyForURL', 'onProxyError', 'proxy.settings'])
+    for (const s of [
+      'pac_script',
+      'pacScript',
+      'FindProxyForURL',
+      'onProxyError',
+      'proxy.settings',
+    ])
       expect(bg, s).not.toContain(s);
   });
   it('uses the Firefox manifest', () => {

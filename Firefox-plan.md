@@ -3,7 +3,7 @@
 Port of [`../noleaker`](../noleaker) (Chrome MV3, v0.1.1) to Firefox desktop.
 The work happens **inside the `noleaker` repo** as a second build target; this file is only the plan.
 
-Date: 2026-10-14. Status: Phase 0, 1b, 2, 3, 4 and 5 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
+Date: 2026-10-14. Status: Phase 0, 1b, 2, 3, 4, 5 and 6 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
 
 ## 1. Decisions
 
@@ -361,6 +361,32 @@ action, and a Chrome ⇄ Firefox settings round trip done by hand).
 - Manual release checklist extended with Firefox items.
 
 **Done when:** CI runs unit, bundle, lint and E2E for both targets and is green.
+
+#### Phase 6 results (2026-10-15)
+
+- Unit: the `route()` matrix (`tests/route.test.ts`, `tests/firefox-routing.test.ts`) and the
+  RFP/private-window logic (`tests/firefox-env.test.ts`) were already in place. The release-metadata
+  tests now run for both manifests, plus a Firefox manifest test (gecko ID, ESR 140, `spanning`).
+- Bundle-content: `dist/firefox` must also not contain `pacScript`. The Chrome no-`onRequest` check
+  and the no-Flow checks (`tests/flow-removal.test.ts`) were already there.
+- CI: new `.github/workflows/ci.yml` (push to main, PRs). The `checks` job runs lint, format,
+  typecheck, both builds, `npm test` and `web-ext lint`. The `e2e-firefox` job downloads Firefox ESR
+  and runs the E2E suite.
+- E2E: `tests/e2e/firefox.e2e.ts` (`npm run e2e:firefox`; `node --test` with `selenium-webdriver`,
+  the only new dev dependency). The unsigned build is installed into the profile, so it needs ESR,
+  Developer Edition or Nightly. Leaks are detected with `network.dns.localDomains`: `fixture.e2e`
+  resolves locally to a `direct` server, while the SOCKS test server (new `route` option) maps it
+  to a `proxied` server. Any hit on `direct` is a leak. Scenarios: private-window badge, WebRTC (no
+  IP candidates, mDNS obfuscation off), startup (restart with the fixture as the home page), kill
+  switch (SOCKS server closed).
+- Manual Firefox release checklist added to `docs/DETAILS.md`.
+- Only Firefox has E2E; Chrome keeps its existing manual checks.
+
+**Not verified:** the E2E suite has **never run**. Firefox cannot start inside the agent sandbox
+(Marionette port never opens), so the suite is checked only up to the browser launch. Its first CI
+run is the real test; likely weak spots are reading `chrome.*` from Marionette scripts on extension
+pages (`wrappedJSObject`), geckodriver using the `-profile` argument in place, and the kill switch
+timeout.
 
 ### Phase 7: Release (unlisted, signed)
 

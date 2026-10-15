@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - name: Build both targets
+        run: npm run build
+      - name: Unit and bundle tests (against the built bundles)
+        run: npm test
+      - name: web-ext lint (Firefox)
+        run: npm run lint:firefox
+
+  e2e-firefox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:firefox
+      # ESR, because release Firefox refuses the unsigned add-on the E2E profile installs.
+      - name: Install Firefox ESR
+        run: |
+          curl -fsSL -o firefox.tar "https://download.mozilla.org/?product=firefox-esr-latest-ssl&os=linux64&lang=en-US"
+          tar -xf firefox.tar -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/firefox/firefox" --version
+      - name: E2E leak scenarios
+        env:
+          FIREFOX_BIN: ${{ runner.temp }}/firefox/firefox
+        run: npm run e2e:firefox

@@ -225,6 +225,32 @@ verification also requires independent packet/DNS/TURN captures, existing-connec
 IPv4/IPv6 and Chrome stable/beta coverage on supported operating systems. Configuration readback
 and an empty ICE result alone do not prove that all network traffic is protected.
 
+### Firefox
+
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, both builds, the unit and bundle tests,
+`web-ext lint` and a Selenium E2E suite on Firefox ESR. The E2E suite (`tests/e2e/firefox.e2e.ts`)
+covers four leak scenarios: startup (no request goes direct before the proxy listener is ready),
+kill switch (SOCKS server down), private windows without access (warning badge) and WebRTC (no
+real-IP candidates). It installs the unsigned build into a profile, which needs Firefox ESR,
+Developer Edition or Nightly:
+
+```sh
+npm run build:firefox
+FIREFOX_BIN=/path/to/firefox-esr npm run e2e:firefox
+```
+
+Manual Firefox release checklist (with the signed `.xpi`, in a fresh profile on Firefox release
+and ESR 140):
+
+- the `.xpi` installs permanently, and the popup, options and leak test open with no console errors;
+- the proxy, with and without SOCKS credentials, shows the proxy IP; Iran-list sites go direct in
+  compatibility mode;
+- the leak test passes with stealth on and off, including timezone, locale and workers inside
+  frames;
+- the "PW!" badge follows "Run in Private Windows", and turning on `privacy.resistFingerprinting`
+  turns the fingerprint shields off;
+- a settings export from Chrome imports into Firefox, and back.
+
 ## Releases
 
 Pushing a version tag (for example `v0.1.0`) automatically installs locked dependencies, checks

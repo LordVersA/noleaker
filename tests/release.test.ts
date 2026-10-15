@@ -1,10 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-const manifest = JSON.parse(readFileSync('manifests/manifest.chrome.json', 'utf8'));
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 
-describe('release metadata', () => {
+describe.each(['chrome', 'firefox'])('release metadata (%s)', (target) => {
+  const manifest = JSON.parse(readFileSync(`manifests/manifest.${target}.json`, 'utf8'));
   it('manifest and package versions match', () => {
     expect(manifest.version).toBe(pkg.version);
   });
@@ -30,5 +30,17 @@ describe('release metadata', () => {
   });
   it('ships the bundled Iran list', () => {
     expect(existsSync('public/data/iran-domains.json')).toBe(true);
+  });
+});
+
+describe('Firefox manifest', () => {
+  const manifest = JSON.parse(readFileSync('manifests/manifest.firefox.json', 'utf8'));
+  it('keeps the permanent gecko ID, ESR 140 minimum and private-window mode', () => {
+    expect(manifest.browser_specific_settings.gecko).toMatchObject({
+      id: 'noleaker@lordversa.github.io',
+      strict_min_version: '140.0',
+    });
+    expect(manifest.incognito).toBe('spanning');
+    expect(manifest.background.service_worker).toBeUndefined();
   });
 });

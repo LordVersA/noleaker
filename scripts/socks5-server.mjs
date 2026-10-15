@@ -4,7 +4,8 @@
 import net from 'node:net';
 import { pathToFileURL } from 'node:url';
 
-export function createSocksServer({ log = () => {} } = {}) {
+// `route(host, port)` may send a destination elsewhere (the E2E tests map a fake host to a local port).
+export function createSocksServer({ log = () => {}, route = (host, port) => [host, port] } = {}) {
   return net.createServer((client) => {
     client.on('error', () => client.destroy());
     let stage = 'greeting';
@@ -60,7 +61,8 @@ export function createSocksServer({ log = () => {} } = {}) {
         stage = 'piping';
         client.removeListener('data', onData);
         log(`CONNECT ${atyp === 3 ? 'domain' : 'ip'} ${host}:${port}`);
-        const upstream = net.connect(port, host);
+        const [toHost, toPort] = route(host, port);
+        const upstream = net.connect(toPort, toHost);
         upstream.on('error', () => {
           if (!client.destroyed) client.end(Buffer.from([5, 5, 0, 1, 0, 0, 0, 0, 0, 0]));
           upstream.destroy();

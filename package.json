@@ -21,14 +21,17 @@
     "snapshot": "node scripts/update-snapshot.mjs",
     "socks": "node scripts/socks5-server.mjs",
     "icons": "node scripts/make-icons.mjs",
-    "package": "npm run build && node scripts/package.mjs"
+    "package": "npm run build && node scripts/package.mjs",
+    "e2e:firefox": "node --test tests/e2e/firefox.e2e.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/chrome": "^0.3.4",
     "@types/node": "^26.6.4",
+    "@types/selenium-webdriver": "^4.35.7",
     "eslint": "^10.12.0",
     "prettier": "^3.9.9",
+    "selenium-webdriver": "^4.51.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vite": "^8.3.3",
