@@ -23,7 +23,7 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     permissions:
       contents: write
     env:
@@ -71,20 +71,51 @@ jobs:
       - name: Run complete test suite against production bundles
         run: npm test
 
-      # The Firefox .xpi is built but not published until AMO signing is set up.
+      # AMO signs each version only once, so a rebuild reuses the signed .xpi already on the release.
+      # Without the AMO secrets the release has no Firefox build (the unsigned one is not shipped).
+      - name: Sign the Firefox add-on (AMO, unlisted)
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version="${RELEASE_TAG#v}"
+          xpi="release/noleaker-firefox-$version.xpi"
+          rm -f "$xpi"
+          if gh release download "$RELEASE_TAG" --pattern "$(basename "$xpi")" --dir release 2>/dev/null; then
+            echo "Reusing the signed $(basename "$xpi") from the release."
+          elif [ -n "$AMO_JWT_ISSUER" ] && [ -n "$AMO_JWT_SECRET" ]; then
+            mkdir -p "$RUNNER_TEMP/sign"
+            cp -R dist/firefox "$RUNNER_TEMP/sign/src"
+            cp LICENSE THIRD_PARTY.md "$RUNNER_TEMP/sign/src/"
+            git archive --format=zip -o "$RUNNER_TEMP/sign/source.zip" HEAD
+            npx web-ext sign --channel=unlisted \
+              --source-dir "$RUNNER_TEMP/sign/src" --artifacts-dir "$RUNNER_TEMP/sign/out" \
+              --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" \
+              --upload-source-code "$RUNNER_TEMP/sign/source.zip" --approval-timeout 1500000
+            mv "$RUNNER_TEMP"/sign/out/*.xpi "$xpi"
+          else
+            echo "::warning::AMO_JWT_ISSUER / AMO_JWT_SECRET are not set: this release has no Firefox build."
+            exit 0
+          fi
+          node scripts/updates-json.mjs "$version" "$xpi" > release/updates.json
+
       - name: Create checksum
         run: |
           cd release
-          sha256sum noleaker-*.zip > SHA256SUMS.txt
+          sha256sum noleaker-*.zip $(ls noleaker-firefox-*.xpi updates.json 2>/dev/null) > SHA256SUMS.txt
 
       - name: Publish release assets with GitHub CLI
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
+          files=(release/noleaker-*.zip release/SHA256SUMS.txt)
+          [ -f release/updates.json ] && files+=(release/noleaker-firefox-*.xpi release/updates.json)
           if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" release/noleaker-*.zip release/SHA256SUMS.txt --clobber
+            gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
           else
-            gh release create "$RELEASE_TAG" release/noleaker-*.zip release/SHA256SUMS.txt \
+            gh release create "$RELEASE_TAG" "${files[@]}" \
               --verify-tag --title "noleaker $RELEASE_TAG" --generate-notes
           fi

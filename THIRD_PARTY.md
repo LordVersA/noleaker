@@ -43,26 +43,32 @@ SOFTWARE.
 These are network services, not bundled software. The extension contacts them as described in
 [PRIVACY.md](PRIVACY.md); each has its own terms.
 
-| Service                        | Used for                                      |
-| ------------------------------ | --------------------------------------------- |
-| `cloudflare.com/cdn-cgi/trace` | Exit IP and country lookup, health check.     |
-| `ipwho.is`                     | Fallback exit lookup and the exit's timezone. |
+| Service                        | Used for                                         |
+| ------------------------------ | ------------------------------------------------ |
+| `cloudflare.com/cdn-cgi/trace` | Exit IP and country lookup, health check.        |
+| `ipwho.is`                     | Fallback exit lookup and the exit's timezone.    |
+| GitHub Releases                | Firefox add-on updates (`updates.json`, `.xpi`). |
 
 ## Build and development tools
 
 Used to build, lint and test the project. None of them are shipped in the extension.
 
-| Package           | License    |
-| ----------------- | ---------- |
-| @eslint/js        | MIT        |
-| @types/chrome     | MIT        |
-| @types/node       | MIT        |
-| eslint            | MIT        |
-| prettier          | MIT        |
-| typescript        | Apache-2.0 |
-| typescript-eslint | MIT        |
-| vite              | MIT        |
-| vitest            | MIT        |
-| web-ext           | MPL-2.0    |
+| Package                   | License    |
+| ------------------------- | ---------- |
+| @eslint/js                | MIT        |
+| @types/chrome             | MIT        |
+| @types/node               | MIT        |
+| @types/selenium-webdriver | MIT        |
+| eslint                    | MIT        |
+| prettier                  | MIT        |
+| selenium-webdriver        | Apache-2.0 |
+| typescript                | Apache-2.0 |
+| typescript-eslint         | MIT        |
+| vite                      | MIT        |
+| vitest                    | MIT        |
+| web-ext                   | MPL-2.0    |
+
+Firefox release builds are signed by Mozilla's add-on signing service (addons.mozilla.org,
+unlisted channel); the source code is uploaded with each signed version.
 
 Their transitive dependencies are listed with exact versions in `package-lock.json`.

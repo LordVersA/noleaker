@@ -3,7 +3,7 @@
 Port of [`../noleaker`](../noleaker) (Chrome MV3, v0.1.1) to Firefox desktop.
 The work happens **inside the `noleaker` repo** as a second build target; this file is only the plan.
 
-Date: 2026-10-14. Status: Phase 0, 1b, 2, 3, 4, 5 and 6 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
+Date: 2026-10-14. Status: Phase 0, 1b, 2, 3, 4, 5, 6 and 7 (code) done; Phase 1 done except a manual load check in Firefox (see spike notes).
 
 ## 1. Decisions
 
@@ -400,6 +400,25 @@ timeout.
 
 **Done when:** a tag produces both artifacts, the `.xpi` installs permanently in Firefox release, and
 a version bump auto-updates an installed copy.
+
+#### Phase 7 results (2026-10-15)
+
+- `npm run package` already built both artifacts (Phase 0).
+- `release.yml`: signs `dist/firefox` (plus LICENSE and THIRD_PARTY.md) with
+  `web-ext sign --channel=unlisted`, uploading a `git archive` of the tag as source code, and waits
+  up to 25 min for approval. The signed `.xpi`, `updates.json` (`scripts/updates-json.mjs`, tested
+  in `tests/release.test.ts`) and a `SHA256SUMS.txt` that covers them are attached. A rebuild of an
+  existing tag reuses the signed `.xpi` from the release, since AMO signs a version only once.
+  Without `AMO_JWT_ISSUER` / `AMO_JWT_SECRET` the release ships without a Firefox build (warning in
+  the log), and the unsigned `.xpi` is never published.
+- Version check over both manifests: already in place (Phase 0).
+- Docs: README (Firefox install, badge, troubleshooting, limits), PRIVACY.md (update check,
+  credentials, private windows, Firefox routing), docs/DETAILS.md ("Firefox differences" and
+  Releases), THIRD_PARTY.md (selenium-webdriver, GitHub Releases, AMO signing).
+
+**Not done (needs the maintainer):** add the AMO API key as repository secrets, push a version tag,
+and check the "Done when" items: both artifacts on the release, the `.xpi` installs permanently in
+Firefox release, and a version bump auto-updates an installed copy.
 
 ### Phase 8 (later, optional): Public AMO listing
 

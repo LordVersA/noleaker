@@ -14,6 +14,11 @@ beyond ordinary request metadata, including the IP visible to the recipient:
 | `ipwho.is`                                                                                     | Fallback for the above, and the exit's timezone.                                                   | ipwho.is   |
 | `github.com/bootmortis/iran-hosted-domains/releases/latest/download/domains.txt` (+ `.sha256`) | Opt-in compatibility-mode refresh of the routing list; disabled in strict mode.                    | GitHub     |
 
+The Firefox build adds one more, made by Firefox itself: about once a day it fetches
+`github.com/LordVersA/noleaker/releases/latest/download/updates.json` (the self-hosted add-on
+update check) and, when there is a new version, downloads the signed `.xpi` from the same GitHub
+release.
+
 These requests use the browser's normal route: through your SOCKS5 proxy while it is on, directly
 when it is off. When the effective browser proxy is controlled and working, lookup services see its exit IP.
 A stored enabled flag alone is not proof of routing; the extension now verifies effective controls. They are third parties with their own policies.
@@ -45,11 +50,12 @@ change what your browser sends and do not send anything to us or anyone new.
 
 ## Privacy boundaries
 
-Strict mode disables automatic public direct exceptions and blocks local URL requests using PAC
-and DNR. Compatibility mode exposes real-IP traffic to direct destinations, including during
+Strict mode disables automatic public direct exceptions and blocks local URL requests (Chrome: PAC
+and DNR; Firefox: the `proxy.onRequest` listener). Compatibility mode exposes real-IP traffic to direct destinations, including during
 proxy failure. Request guards cover new DNR-visible requests, not existing connections, other
 extensions, all browser-internal services or OS traffic. Disabling/uninstalling this extension
-removes its enforcement.
+removes its enforcement. In Firefox, private windows are protected only if you allow noleaker to
+run there (`about:addons` → Run in Private Windows); the icon shows a **PW!** badge until you do.
 
 MAIN-world patches are observable and bypassable by hostile scripts. Early fingerprint reads, immediately accessible new iframe realms and existing Service Workers remain limitations.
 Strict mode blocks unsupported new worker creation and Service Worker registration through patched
@@ -63,8 +69,9 @@ Use a dedicated browser profile; switching proxies does not isolate or erase ide
 ## What it does not do
 
 - It does not read or record the pages you visit, and does not keep a browsing history.
-- It does not use proxy usernames or passwords (SOCKS5 without authentication only).
-- It does not make you anonymous. It is not a VPN; only Chrome traffic goes through the proxy, and
+- In Chrome it does not use proxy usernames or passwords (SOCKS5 without authentication only). In
+  Firefox an optional SOCKS5 username and password are sent only to your proxy.
+- It does not make you anonymous. It is not a VPN; only browser traffic goes through the proxy, and
   the proxy operator can see where that traffic goes.
 
 Routing-list downloads stage unsigned candidates only. Review and approval in Options are required before direct-routing membership changes. See [coverage and identity boundaries](docs/PRIVACY-COVERAGE.md).

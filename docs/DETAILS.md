@@ -203,6 +203,35 @@ Moved to its own extension, [noleaker-flow](https://github.com/LordVersA/noleake
 and Firefox. Updating from v0.1.1 removes the old Flow page script, its network rule and the
 setting.
 
+## Firefox differences
+
+The Firefox build (desktop, Firefox 140 ESR or newer) shares all page-side code with Chrome. The
+differences:
+
+- **Routing.** Firefox has no PAC here: a `proxy.onRequest` listener decides each request with the
+  same `route()` logic as Chrome's PAC script (SOCKS5 with remote DNS, Iran list and direct domains
+  in compatibility mode, strict-mode local-host block). The kill switch and the transition guard
+  answer with a dead-end proxy instead of DNR block rules. Requests made before the routing table is
+  loaded wait for it and are refused if it never arrives; a listener error also means refused,
+  never direct. There is no `proxy.settings` fallback, so if the listener itself is missing (for
+  example the extension failed to start), Firefox's own proxy settings apply.
+- **SOCKS5 authentication.** Optional username and password per proxy, Firefox only.
+- **Private windows.** noleaker runs there only if allowed (`about:addons` → Run in Private
+  Windows). Without it, private windows are not protected: popup, options and the leak test show a
+  warning and the icon a **PW!** badge. Nothing else changes.
+- **resistFingerprinting.** With `privacy.resistFingerprinting` on, the fingerprint shields
+  (canvas, WebGL, audio, client rects, screen, CPU, memory) are switched off in the effective
+  config, because Firefox already handles them; timezone and language spoofing stay on. Firefox's
+  Fingerprinting Protection (FPP) cannot be detected, so canvas or audio noise may stack with its
+  own when you turn the shields on.
+- **Stealth.** Stack cleaning also removes `moz-extension://` frames, and patched functions copy
+  Firefox's native `toString` format. Less tested than in Chrome; errors Firefox does not let us
+  rewrite (possibly `DOMException`) keep their frames.
+- **Frames.** Firefox before 151 has no `location.ancestorOrigins`; frames ask the background for
+  the tab's site so the whitelist and per-site seed match the top page.
+- **Distribution.** An unlisted, Mozilla-signed `.xpi` on GitHub Releases that updates itself
+  through `updates.json` (see Releases). Not on addons.mozilla.org.
+
 ## Testing
 
 Build before running tests so bundled-script checks use the current output:
@@ -253,21 +282,35 @@ and ESR 140):
 
 ## Releases
 
-Pushing a version tag (for example `v0.1.0`) automatically installs locked dependencies, checks
-formatting/lint, builds minified production bundles, runs the full test suite and publishes the
-extension ZIP plus `SHA256SUMS.txt` to GitHub Releases. The tag must match the versions in
-`package.json` and both `manifests/manifest.*.json`.
+Pushing a version tag (for example `v0.2.0`) automatically installs locked dependencies, checks
+formatting/lint, builds minified production bundles, runs the full test suite and publishes to
+GitHub Releases:
+
+- `noleaker-chrome-X.Y.Z.zip`;
+- `noleaker-firefox-X.Y.Z.xpi`, signed by Mozilla on the unlisted channel (`web-ext sign`, with
+  the source code uploaded), and `updates.json` for Firefox's self-hosted update check;
+- `SHA256SUMS.txt` covering all of them.
+
+The tag must match the versions in `package.json` and both `manifests/manifest.*.json`.
+
+Signing needs two repository secrets, `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` (an API key from
+addons.mozilla.org → Developer Hub → Manage API Keys). Without them the release has no Firefox
+build. AMO signs each version only once, so rebuilding an existing tag reuses the signed `.xpi`
+already on the release. The Gecko ID `noleaker@lordversa.github.io` is permanent once signed.
+
+Installed Firefox copies check
+`https://github.com/LordVersA/noleaker/releases/latest/download/updates.json`, so a new release
+only updates them once it is the latest (not a draft or pre-release).
 
 After committing and pushing the release changes:
 
 ```sh
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
-Publishing a release with `gh release create v0.1.0 --verify-tag --generate-notes` also triggers
+Publishing a release with `gh release create v0.2.0 --verify-tag --generate-notes` also triggers
 asset building. An existing tag can be rebuilt from Actions → Build and release → Run workflow.
-Download the release ZIP, extract it and load the extracted folder using Chrome's **Load unpacked**.
 
 ## Updating the bundled Iran list
 

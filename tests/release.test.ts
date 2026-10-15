@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+// @ts-expect-error plain .mjs script without types
+import { updatesJson } from '../scripts/updates-json.mjs';
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 
@@ -42,5 +44,21 @@ describe('Firefox manifest', () => {
     });
     expect(manifest.incognito).toBe('spanning');
     expect(manifest.background.service_worker).toBeUndefined();
+  });
+});
+
+describe('Firefox updates.json', () => {
+  it('points the self-hosted update_url at the signed .xpi of the tagged release', () => {
+    const manifest = JSON.parse(readFileSync('manifests/manifest.firefox.json', 'utf8'));
+    const out = updatesJson(manifest, '1.2.3', 'noleaker-firefox-1.2.3.xpi', Buffer.from('xpi'));
+    expect(out.addons['noleaker@lordversa.github.io'].updates).toEqual([
+      {
+        version: '1.2.3',
+        update_link:
+          'https://github.com/LordVersA/noleaker/releases/download/v1.2.3/noleaker-firefox-1.2.3.xpi',
+        update_hash: 'sha256:d70214a04a2d194e4039403f1018689e7d3951ecc6fd2fdc39c9cc65907464b5',
+        browser_specific_settings: { gecko: { strict_min_version: '140.0' } },
+      },
+    ]);
   });
 });

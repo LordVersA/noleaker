@@ -1,14 +1,15 @@
-<p align="center"><img src="docs/brand/logo.jpg" alt="noleaker: SOCKS5 proxy Chrome extension with leak protection" width="520" /></p>
+<p align="center"><img src="docs/brand/logo.jpg" alt="noleaker: SOCKS5 proxy extension for Chrome and Firefox with leak protection" width="520" /></p>
 
-# noleaker: SOCKS5 proxy extension for Chrome with leak protection
+# noleaker: SOCKS5 proxy extension for Chrome and Firefox with leak protection
 
 [![Latest release](https://img.shields.io/github/v/release/LordVersA/noleaker)](https://github.com/LordVersA/noleaker/releases/latest)
 [![Build and release](https://github.com/LordVersA/noleaker/actions/workflows/release.yml/badge.svg)](https://github.com/LordVersA/noleaker/actions/workflows/release.yml)
 ![Chrome 120+](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
+![Firefox 140+](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue)](LICENSE)
 
-**noleaker** is a free, open-source Chrome extension (Manifest V3) that sends your browser through a
+**noleaker** is a free, open-source browser extension for Chrome and Firefox (Manifest V3) that sends your browser through a
 SOCKS5 proxy and stops the usual leaks: WebRTC, DNS, QUIC, timezone and language. Think of it as a
 FoxyProxy alternative that also makes the browser look like it is in the proxy's country.
 
@@ -47,12 +48,24 @@ Also included:
 
 ## Install
 
-1. Download `noleaker-<version>.zip` from the
+**Chrome**
+
+1. Download `noleaker-chrome-<version>.zip` from the
    [latest release](https://github.com/LordVersA/noleaker/releases/latest) and extract it.
 2. Open `chrome://extensions` and enable **Developer mode**.
 3. Click **Load unpacked** and choose the extracted folder.
 
 Needs Chrome 120 or newer. Other Chromium browsers are untested.
+
+**Firefox**
+
+1. Open `noleaker-firefox-<version>.xpi` from the
+   [latest release](https://github.com/LordVersA/noleaker/releases/latest) in Firefox and click
+   **Add**. It is signed by Mozilla (not listed on addons.mozilla.org) and updates itself.
+2. Recommended: `about:addons` → noleaker → **Run in Private Windows** → Allow. Without it,
+   private windows are not protected and the icon shows a **PW!** badge.
+
+Needs Firefox 140 (ESR) or newer on desktop. Forks such as LibreWolf probably work but are untested.
 
 ## Use
 
@@ -66,14 +79,19 @@ Needs Chrome 120 or newer. Other Chromium browsers are untested.
   recovers within a minute. Options → Diagnostics shows what happened.
 - **"noleaker does not control the proxy":** another extension (for example FoxyProxy) or a policy
   owns Chrome's proxy settings. Disable it.
+- **PW! badge (Firefox):** noleaker may not run in private windows, so they are not protected.
+  Allow it in `about:addons` → noleaker → Run in Private Windows.
+- **Firefox with `privacy.resistFingerprinting`:** the fingerprint shields switch themselves off,
+  because Firefox already handles them. Timezone and language spoofing stay on.
 - **A site shows your real timezone:** check that the site is not whitelisted, then reload the page.
-- **WebRTC calls do not work:** expected. Chrome cannot carry UDP through SOCKS5, so WebRTC is
+- **WebRTC calls do not work:** expected. Browsers cannot carry UDP through SOCKS5, so WebRTC is
   restricted to protect your IP.
 
 ## Limits
 
-- **Not a VPN.** Only Chrome traffic is covered, and the proxy operator sees where it goes.
-- **SOCKS5 without username/password only.** Chrome's proxy API cannot do more.
+- **Not a VPN.** Only browser traffic is covered, and the proxy operator sees where it goes.
+- **SOCKS5 username/password only in Firefox.** Chrome's proxy API cannot carry them, so Chrome
+  needs a proxy without authentication.
 - **"Proxy verified" is not a guarantee of zero leaks.** It means the browser controls were applied
   and read back. Independent packet capture has not been done yet.
 - **Not an anti-bot tool.** Spoofing removes obvious mismatches; it does not make you undetectable.
@@ -94,10 +112,9 @@ npm run socks     # local SOCKS5 server on 127.0.0.1:1080 for testing
 npm run package   # build and zip both targets to release/
 ```
 
-Load the `dist/chrome/` folder with **Load unpacked**. The Firefox build (`dist/firefox/`) is a
-work in progress: proxy routing is implemented but not yet tested in Firefox, and leak protection
-and the leak test are not finished. After a rebuild, reload the extension and your open
-tabs. Testing, releases and design notes: [docs/DETAILS.md](docs/DETAILS.md) and
+Load the `dist/chrome/` folder with **Load unpacked**. For Firefox, run `npm run start:firefox`, or
+open `about:debugging` → This Firefox → **Load Temporary Add-on** and pick
+`dist/firefox/manifest.json`. After a rebuild, reload the extension and your open tabs. Testing, releases and design notes: [docs/DETAILS.md](docs/DETAILS.md) and
 [DESIGN.md](DESIGN.md).
 
 ## License
