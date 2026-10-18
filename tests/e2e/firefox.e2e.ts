@@ -90,16 +90,17 @@ function makeProfile(): string {
 }
 
 async function launch(): Promise<WebDriver> {
-  const options = new firefox.Options().addArguments(
-    '-headless',
-    '-profile',
-    profile,
-    // Firefox only lets WebDriver open moz-extension:// pages with system access.
-    '-remote-allow-system-access',
-  );
+  const options = new firefox.Options().addArguments('-headless', '-profile', profile);
   if (process.env.FIREFOX_BIN) options.setBinary(process.env.FIREFOX_BIN);
   for (const [k, v] of Object.entries(prefs())) options.setPreference(k, v);
-  return new Builder().forBrowser('firefox').setFirefoxOptions(options).build();
+  // Firefox only lets WebDriver open moz-extension:// pages with system access, which geckodriver
+  // must grant (it refuses -remote-allow-system-access as a browser argument).
+  const service = new firefox.ServiceBuilder().addArguments('--allow-system-access');
+  return new Builder()
+    .forBrowser('firefox')
+    .setFirefoxOptions(options)
+    .setFirefoxService(service)
+    .build();
 }
 
 /** Run `body` (async code using `api`, the extension's chrome object) on an extension page. */
