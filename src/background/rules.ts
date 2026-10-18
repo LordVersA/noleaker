@@ -25,23 +25,50 @@ export interface DnrRule {
   condition: Record<string, unknown>;
 }
 
-export const ALL_TYPES = [
-  'main_frame',
-  'sub_frame',
-  'stylesheet',
-  'script',
-  'image',
-  'font',
-  'object',
-  'xmlhttprequest',
-  'ping',
-  'csp_report',
-  'media',
-  'websocket',
-  'webtransport',
-  'webbundle',
-  'other',
-] as chrome.declarativeNetRequest.ResourceType[];
+// Each browser rejects the whole rule set over a resource type it does not know, so the lists differ.
+export const ALL_TYPES = (
+  __BROWSER__ === 'firefox'
+    ? [
+        'main_frame',
+        'sub_frame',
+        'stylesheet',
+        'script',
+        'image',
+        'imageset',
+        'font',
+        'object',
+        'object_subrequest',
+        'xmlhttprequest',
+        'json',
+        'xslt',
+        'xml_dtd',
+        'ping',
+        'beacon',
+        'csp_report',
+        'media',
+        'websocket',
+        'web_manifest',
+        'speculative',
+        'other',
+      ]
+    : [
+        'main_frame',
+        'sub_frame',
+        'stylesheet',
+        'script',
+        'image',
+        'font',
+        'object',
+        'xmlhttprequest',
+        'ping',
+        'csp_report',
+        'media',
+        'websocket',
+        'webtransport',
+        'webbundle',
+        'other',
+      ]
+) as chrome.declarativeNetRequest.ResourceType[];
 
 /** Requests to these domains, and requests started by pages on them, are left alone. */
 const exclude = (domains: readonly string[]) =>

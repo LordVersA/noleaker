@@ -42,6 +42,11 @@ describe.skipIf(!existsSync('dist/firefox/background.js'))('Firefox bundle', () 
     ])
       expect(bg, s).not.toContain(s);
   });
+  it('uses only network-rule resource types Firefox accepts', () => {
+    const bg = read('dist/firefox').join('\n');
+    for (const s of ['webtransport', 'webbundle']) expect(bg, s).not.toContain(s);
+    expect(bg).toContain('object_subrequest');
+  });
   it('uses the Firefox manifest', () => {
     const manifest = JSON.parse(readFileSync('dist/firefox/manifest.json', 'utf8'));
     expect(manifest.background.scripts).toEqual(['background.js']);
