@@ -90,7 +90,13 @@ function makeProfile(): string {
 }
 
 async function launch(): Promise<WebDriver> {
-  const options = new firefox.Options().addArguments('-headless', '-profile', profile);
+  const options = new firefox.Options().addArguments(
+    '-headless',
+    '-profile',
+    profile,
+    // Firefox only lets WebDriver open moz-extension:// pages with system access.
+    '-remote-allow-system-access',
+  );
   if (process.env.FIREFOX_BIN) options.setBinary(process.env.FIREFOX_BIN);
   for (const [k, v] of Object.entries(prefs())) options.setPreference(k, v);
   return new Builder().forBrowser('firefox').setFirefoxOptions(options).build();

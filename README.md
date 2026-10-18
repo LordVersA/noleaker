@@ -4,6 +4,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/LordVersA/noleaker)](https://github.com/LordVersA/noleaker/releases/latest)
 [![Build and release](https://github.com/LordVersA/noleaker/actions/workflows/release.yml/badge.svg)](https://github.com/LordVersA/noleaker/actions/workflows/release.yml)
+[![Downloads](https://img.shields.io/github/downloads/LordVersA/noleaker/total)](https://github.com/LordVersA/noleaker/releases)
 ![Chrome 120+](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox 140+](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
