@@ -22,6 +22,7 @@
     "socks": "node scripts/socks5-server.mjs",
     "icons": "node scripts/make-icons.mjs",
     "package": "npm run build && node scripts/package.mjs",
+    "release": "scripts/release.sh",
     "e2e:firefox": "node --test tests/e2e/firefox.e2e.ts"
   },
   "devDependencies": {

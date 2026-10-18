@@ -302,15 +302,12 @@ Installed Firefox copies check
 `https://github.com/LordVersA/noleaker/releases/latest/download/updates.json`, so a new release
 only updates them once it is the latest (not a draft or pre-release).
 
-After committing and pushing the release changes:
-
-```sh
-git tag v0.2.0
-git push origin v0.2.0
-```
-
-Publishing a release with `gh release create v0.2.0 --verify-tag --generate-notes` also triggers
-asset building. An existing tag can be rebuilt from Actions → Build and release → Run workflow.
+To release, run `npm run release -- 0.3.0` on a clean `main`. It shows the release notes, then
+bumps `package.json`, `package-lock.json` and both manifests, commits `chore: release 0.3.0`, tags
+`v0.3.0` and pushes. The notes come from `scripts/changelog.sh`: the commits since the previous
+tag, grouped into Features, Fixes and Other changes. The workflow writes them into the GitHub
+Release, and again when an existing release is rebuilt. An existing tag can be rebuilt from Actions → Build and
+release → Run workflow.
 
 ## Updating the bundled Iran list
 
