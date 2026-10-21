@@ -5,10 +5,9 @@
 // (Dev channel), which still honours it. CHROME_BIN points at another unbranded build instead.
 // Leak detection: --host-resolver-rules maps fixture.e2e to 127.0.0.1, so a request that goes
 // direct reaches the `direct` server. Through the SOCKS server the same host reaches `proxied`.
-import { createHash } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo, Socket } from 'node:net';
-import { mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
@@ -19,10 +18,7 @@ import chrome from 'selenium-webdriver/chrome.js';
 import { createSocksServer } from '../../scripts/socks5-server.mjs';
 
 const DIST = resolve('dist/chrome');
-// Chrome derives an unpacked extension's ID from its path: sha256, first 32 hex digits as a-p.
-const ID = [...createHash('sha256').update(DIST).digest('hex').slice(0, 32)]
-  .map((c) => String.fromCharCode(97 + parseInt(c, 16)))
-  .join('');
+let ID = '';
 const HOST = 'fixture.e2e';
 
 // A page that gathers its WebRTC candidates, then sets its title to "done".
@@ -71,11 +67,25 @@ let socks: Server;
 let url = '';
 let driver: WebDriver;
 
+const profile = mkdtempSync(join(tmpdir(), 'noleaker-chrome-'));
+
+/** The ID Chrome gave the unpacked extension, read from the profile's preference files. */
+function extensionId(): string {
+  for (const file of ['Secure Preferences', 'Preferences']) {
+    const path = join(profile, 'Default', file);
+    if (!existsSync(path)) continue;
+    const settings = JSON.parse(readFileSync(path, 'utf8')).extensions?.settings ?? {};
+    for (const [id, e] of Object.entries(settings))
+      if ((e as { path?: string }).path === DIST) return id;
+  }
+  return '';
+}
+
 async function launch(): Promise<WebDriver> {
   const options = new chrome.Options();
   options.addArguments(
     '--headless=new',
-    `--user-data-dir=${mkdtempSync(join(tmpdir(), 'noleaker-chrome-'))}`,
+    `--user-data-dir=${profile}`,
     `--load-extension=${DIST}`,
     '--disable-features=DisableLoadExtensionCommandLineSwitch',
     `--host-resolver-rules=MAP ${HOST} 127.0.0.1`,
@@ -88,7 +98,17 @@ async function launch(): Promise<WebDriver> {
     process.env.SE_FORCE_BROWSER_DOWNLOAD ??= 'true';
     process.env.SE_BROWSER_VERSION ??= 'dev';
   }
-  return new Builder().forBrowser('chrome').setChromeOptions(options).build();
+  const d = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
+  const end = Date.now() + 15_000;
+  while (!(ID = extensionId()) && Date.now() < end) await new Promise((r) => setTimeout(r, 250));
+  if (!ID) {
+    const caps = await d.getCapabilities();
+    await d.quit();
+    throw new Error(
+      `${caps.getBrowserName()} ${caps.getBrowserVersion()} did not load the extension from ${DIST}`,
+    );
+  }
+  return d;
 }
 
 /** Run `body` (async code using `chrome`) on an extension page. */

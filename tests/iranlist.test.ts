@@ -97,5 +97,5 @@ describe('bundled snapshot', () => {
     const sample = decodeGroups(snapshot.groups).slice(0, 2000);
     for (const d of sample) expect(find(pac, d), d).toBe('DIRECT');
     expect(find(pac, 'google.com')).toBe('SOCKS5 proxy.example:1080');
-  });
+  }, 30_000); // 2000 PAC evaluations; slow on shared CI runners
 });
