@@ -1,8 +1,8 @@
 // Chrome E2E against dist/chrome: WebRTC, kill switch, and a toggle racing a health check.
-// Run: npm run build:chrome && SE_FORCE_BROWSER_DOWNLOAD=true SE_BROWSER_VERSION=dev npm run e2e:chrome
+// Run: npm run build:chrome && npm run e2e:chrome
 //
-// Branded Chrome (stable, Dev) ignores --load-extension; selenium then downloads Chrome for
-// Testing, which still honours it. CHROME_BIN points at another unbranded build instead.
+// Branded Chrome (stable, Dev) ignores --load-extension, so selenium downloads Chrome for Testing
+// (Dev channel), which still honours it. CHROME_BIN points at another unbranded build instead.
 // Leak detection: --host-resolver-rules maps fixture.e2e to 127.0.0.1, so a request that goes
 // direct reaches the `direct` server. Through the SOCKS server the same host reaches `proxied`.
 import { createHash } from 'node:crypto';
@@ -81,7 +81,13 @@ async function launch(): Promise<WebDriver> {
     `--host-resolver-rules=MAP ${HOST} 127.0.0.1`,
     '--no-first-run',
   );
+  // Ubuntu runners block the unprivileged user namespaces Chrome's sandbox needs.
+  if (process.env.CI) options.addArguments('--no-sandbox');
   if (process.env.CHROME_BIN) options.setChromeBinaryPath(process.env.CHROME_BIN);
+  else {
+    process.env.SE_FORCE_BROWSER_DOWNLOAD ??= 'true';
+    process.env.SE_BROWSER_VERSION ??= 'dev';
+  }
   return new Builder().forBrowser('chrome').setChromeOptions(options).build();
 }
 
