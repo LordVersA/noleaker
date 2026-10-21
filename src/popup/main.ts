@@ -209,10 +209,14 @@ async function runAudit(): Promise<void> {
       args: [[...PERSIAN_FONTS]],
     });
     const { value: policy } = await chrome.privacy.network.webRTCIPHandlingPolicy.get({});
+    const shields = {
+      ...state.shields,
+      webrtc: state.routingMode === 'strict' || state.shields.webrtc,
+    };
     const result = analyzeAudit(
       injected!.result!,
       gate.timezone,
-      { ...state.shields, webrtc: state.routingMode === 'strict' || state.shields.webrtc },
+      shields,
       policy,
       buildSpoofConfig(state),
     );
@@ -221,13 +225,26 @@ async function runAudit(): Promise<void> {
       const el = document.createElement('div');
       el.className = 'chip';
       el.dataset.status = c.status;
-      el.title = c.status === 'off' ? 'Shield off' : (c.seen ?? '');
+      el.title =
+        c.status === 'off'
+          ? 'Shield off'
+          : c.status === 'na'
+            ? 'Not available in this browser'
+            : c.status === 'ok'
+              ? 'Hidden from the site'
+              : (c.seen ?? '');
       const dot = document.createElement('i');
       el.append(dot, document.createTextNode(c.label));
       grid.append(el);
       if (c.status === 'bad') {
         const li = document.createElement('li');
-        li.textContent = `${c.label}: site sees ${c.seen}. Turn on "${shieldLabel(c.shield)}".`;
+        const name = document.createElement('b');
+        name.textContent = c.label;
+        // A failing check with its shield on means the page loaded before the shield applied.
+        const fix = shields[c.shield]
+          ? 'Reload the tab and audit again.'
+          : `Turn on "${shieldLabel(c.shield)}" in settings.`;
+        li.append(name, ` — the site sees ${c.seen}. ${fix}`);
         detail.append(li);
       }
     }
