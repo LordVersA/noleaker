@@ -73,6 +73,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:chrome
-      # Selenium downloads Chrome for Testing: branded Chrome ignores --load-extension.
+      # Chrome for Testing: the runner's branded Chrome ignores --load-extension.
+      - name: Install Chrome for Testing
+        run: |
+          npx -y @puppeteer/browsers@2.10.5 install chrome@dev --path "$RUNNER_TEMP/cft" | tail -1 | cut -d" " -f2- > cft.txt
       - name: E2E leak scenarios
-        run: npm run e2e:chrome
+        run: CHROME_BIN="$(cat cft.txt)" npm run e2e:chrome
