@@ -101,10 +101,11 @@ export async function updateIranList(): Promise<{
     }
     const prior = new Set(decodeGroups(await loadIranGroups()));
     const next = new Set(decodeGroups(groups));
-    const added = [...next].filter((domain) => !prior.has(domain)).length;
-    const removed = [...prior].filter((domain) => !next.has(domain)).length;
+    const added = [...next].filter((domain) => !prior.has(domain)).sort();
+    const removed = [...prior].filter((domain) => !next.has(domain)).sort();
+    const limit = Math.max(100, prior.size * 0.1);
     const warning =
-      added > Math.max(100, prior.size * 0.1) || removed > Math.max(100, prior.size * 0.1)
+      added.length > limit || removed.length > limit
         ? 'Routing list changed by more than 10%. Review the changes below, then approve to replace the current list. Until approval, the current list stays active.'
         : undefined;
     if (JSON.stringify(groups).length > MAX_LIST_CHARS) {
@@ -117,8 +118,8 @@ export async function updateIranList(): Promise<{
       groups,
       count,
       base: JSON.stringify(encodeGroups([...prior])),
-      added: [...next].filter((domain) => !prior.has(domain)).sort(),
-      removed: [...prior].filter((domain) => !next.has(domain)).sort(),
+      added,
+      removed,
     };
     await chrome.storage.local.set({ [CANDIDATE_KEY]: candidate });
     log('info', `Iran list staged for manual review (${count} domains)`);

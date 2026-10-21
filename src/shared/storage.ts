@@ -134,14 +134,18 @@ export async function persistMigration(): Promise<boolean> {
   return true;
 }
 
-export async function setState(patch: Partial<State>): Promise<State> {
-  const next = { ...(await getState()), ...patch };
-  await chrome.storage.local.set({ [KEY]: next });
-  return next;
+export function setState(patch: Partial<State>): Promise<State> {
+  return updateState(() => patch);
 }
 
-export async function updateState(fn: (s: State) => Partial<State>): Promise<State> {
-  return setState(fn(await getState()));
+/** Read-modify-write under a lock shared by popup, options and background, so no write is lost. */
+export function updateState(fn: (s: State) => Partial<State>): Promise<State> {
+  return navigator.locks.request(KEY, async () => {
+    const current = await getState();
+    const next = { ...current, ...fn(current) };
+    await chrome.storage.local.set({ [KEY]: next });
+    return next;
+  });
 }
 
 /** Subscribe to state changes. Returns an unsubscribe function. */

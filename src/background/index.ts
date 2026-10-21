@@ -43,7 +43,10 @@ ensureAlarms();
 onStateChanged(onConfigChange);
 chrome.alarms.onAlarm.addListener(onAlarm);
 chrome.alarms.onAlarm.addListener((a) => {
-  if (a.name === UPDATE_ALARM) void updateIranList();
+  if (a.name !== UPDATE_ALARM) return;
+  void getState().then((s) => {
+    if (s.listUpdates && s.routingMode !== 'strict') void updateIranList();
+  });
 });
 // Reverify effective settings whenever this service worker wakes.
 onConfigChange();

@@ -27,40 +27,58 @@ async function writeMap<T>(key: string, map: TabMap<T>): Promise<void> {
 }
 
 /** Remember each tab's last navigation (we need to know if it was a form submit). */
-export async function trackNavigation(details: {
+/** Tab maps are read-modify-write; run one update at a time so tabs do not erase each other. */
+const tabLock = <T>(fn: () => Promise<T>): Promise<T> => navigator.locks.request('tabMaps', fn);
+
+export function trackNavigation(details: {
   tabId: number;
   frameId: number;
   url: string;
   transitionType: string;
 }): Promise<void> {
-  if (details.frameId !== 0) return;
-  const navs = await readMap<{ url: string; transitionType: string }>(NAVS_KEY);
-  navs[details.tabId] = { url: details.url, transitionType: details.transitionType };
-  await writeMap(NAVS_KEY, navs);
+  if (details.frameId !== 0) return Promise.resolve();
+  return tabLock(async () => {
+    const navs = await readMap<{ url: string; transitionType: string }>(NAVS_KEY);
+    navs[details.tabId] = { url: details.url, transitionType: details.transitionType };
+    await writeMap(NAVS_KEY, navs);
 
-  // A note describes one page; moving to another page clears it.
-  const notes = await readMap<TabNote>(NOTES_KEY);
-  if (notes[details.tabId] && notes[details.tabId]!.url !== details.url) {
-    delete notes[details.tabId];
-    await writeMap(NOTES_KEY, notes);
-  }
+    // A note describes one page; moving to another page clears it.
+    const notes = await readMap<TabNote>(NOTES_KEY);
+    if (notes[details.tabId] && notes[details.tabId]!.url !== details.url) {
+      delete notes[details.tabId];
+      await writeMap(NOTES_KEY, notes);
+    }
+  });
 }
 
-export async function forgetTab(tabId: number): Promise<void> {
-  for (const key of [NAVS_KEY, NOTES_KEY]) {
-    const map = await readMap<unknown>(key);
-    if (tabId in map) {
-      delete map[tabId];
-      await writeMap(key, map);
+export function forgetTab(tabId: number): Promise<void> {
+  return tabLock(async () => {
+    for (const key of [NAVS_KEY, NOTES_KEY]) {
+      const map = await readMap<unknown>(key);
+      if (tabId in map) {
+        delete map[tabId];
+        await writeMap(key, map);
+      }
     }
-  }
+    const reloads = await readMap<number>(RELOADS_KEY);
+    const stale = Object.keys(reloads).filter((k) => k.startsWith(`${tabId}|`));
+    for (const k of stale) delete reloads[k];
+    if (stale.length) await writeMap(RELOADS_KEY, reloads);
+  });
 }
 
 /**
  * A page reported that it runs without the MAIN-world script. Reload its tab once, if it is safe.
  * The guards live in `decideReload`; this function only gathers the facts for it.
  */
-export async function handleStaleReport(
+export function handleStaleReport(
+  report: StaleReport,
+  sender: chrome.runtime.MessageSender,
+): Promise<{ reloaded: boolean; reason: string }> {
+  return tabLock(() => staleReport(report, sender));
+}
+
+async function staleReport(
   report: StaleReport,
   sender: chrome.runtime.MessageSender,
 ): Promise<{ reloaded: boolean; reason: string }> {

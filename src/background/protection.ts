@@ -39,10 +39,13 @@ export async function syncProtection(): Promise<void> {
 }
 
 /** Store the worker prelude script where the bridge can read it (it cannot fetch extension files). */
+let preludeSynced = false;
 async function syncPrelude(): Promise<void> {
+  if (preludeSynced) return;
   const text = await (await fetch(chrome.runtime.getURL('content/worker.js'))).text();
   const stored = (await chrome.storage.local.get(PRELUDE_KEY))[PRELUDE_KEY];
   if (stored !== text) await chrome.storage.local.set({ [PRELUDE_KEY]: text });
+  preludeSynced = true; // the file only changes with an extension update, which restarts the worker
 }
 
 async function applyProtection(): Promise<void> {

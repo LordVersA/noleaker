@@ -198,5 +198,6 @@ export function onAlarm(alarm: chrome.alarms.Alarm): void {
 export function onProxyError(details: { error: string; fatal?: boolean }): void {
   log('warn', `Proxy error: ${details.error}${details.fatal ? ' (fatal)' : ''}`);
   if (Date.now() - lastCheckAt < ERROR_RECHECK_MS) return;
+  lastCheckAt = Date.now(); // one queued check per burst of errors
   enqueue(async () => void (await runCheck()));
 }

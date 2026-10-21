@@ -36,4 +36,10 @@ describe('storage', () => {
     await updateState((s) => ({ whitelist: [...s.whitelist, 'b.com'] }));
     expect((await getState()).whitelist).toEqual(['a.com', 'b.com']);
   });
+
+  it('concurrent writes do not overwrite each other', async () => {
+    await Promise.all([setState({ countryOverride: 'DE' }), setState({ stealth: true })]);
+    const s = await getState();
+    expect([s.countryOverride, s.stealth]).toEqual(['DE', true]);
+  });
 });
