@@ -134,15 +134,17 @@ const verified = () =>
   until('proxy on and controls verified', async () => {
     const s = await state();
     return s.enabled === true && !!s.controlsVerifiedAt && !s.protectionError;
-  }).catch(async (e: Error) => {
-    // Show why: the stored state and the extension's own log.
-    const dump = await ext(`const { state, log } = await api.storage.local.get(['state', 'log']);
-      const { profiles, ...rest } = state ?? {};
-      return { state: rest, log: (log ?? []).map((l) => l.level + ': ' + l.msg) };`).catch(
-      (err: Error) => `unavailable: ${err.message}`,
-    );
-    throw new Error(`${e.message}\n${JSON.stringify(dump, null, 2)}`);
-  });
+  }).catch(explain);
+
+/** Rethrow with why: the stored state and the extension's own log. */
+async function explain(e: Error): Promise<never> {
+  const dump = await ext(`const { state, log } = await api.storage.local.get(['state', 'log']);
+    const { profiles, ...rest } = state ?? {};
+    return { state: rest, log: (log ?? []).map((l) => l.level + ': ' + l.msg) };`).catch(
+    (err: Error) => `unavailable: ${err.message}`,
+  );
+  throw new Error(`${e.message} (direct hits: ${direct.hits})\n${JSON.stringify(dump, null, 2)}`);
+}
 
 /** Load the fixture a few times; a refused load is fine, only where it goes matters. */
 async function browse(times = 3): Promise<void> {
@@ -221,7 +223,7 @@ test('kill switch: SOCKS server down, no direct request', async () => {
       return (await state()).killSwitchActive === true;
     },
     120_000,
-  );
+  ).catch(explain);
   await browse();
   assert.equal(direct.hits, 0);
 });
