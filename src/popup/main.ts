@@ -1,3 +1,4 @@
+import { initI18n } from '../shared/i18n';
 import { COUNTRIES } from '../shared/countries';
 import { hostMatches } from '../shared/domains';
 import { effectiveExit } from '../shared/exit';
@@ -269,3 +270,4 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 onStateChanged(render);
 if (__BROWSER__ === 'firefox') showEnvNotes($('private-note'), $('rfp-note'));
+void initI18n();

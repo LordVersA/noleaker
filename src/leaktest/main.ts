@@ -1,3 +1,4 @@
+import { initI18n } from '../shared/i18n';
 import { getState } from '../shared/storage';
 import { type CheckResult, type CheckStatus } from './analyze';
 import { ROWS, runAll } from './checks';
@@ -163,3 +164,4 @@ $('read-controls').addEventListener('click', async () => {
     button.disabled = false;
   }
 });
+void initI18n();

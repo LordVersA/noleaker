@@ -17,7 +17,7 @@
   height: 100vh;
   padding: 32px 22px;
   background: rgba(8, 12, 18, 0.7);
-  border-right: 1px solid var(--border);
+  border-inline-end: 1px solid var(--border);
   backdrop-filter: blur(14px);
 }
 .brand {
@@ -69,14 +69,19 @@ h1 {
   position: absolute;
   top: 9px;
   bottom: 9px;
-  left: 0;
+  inset-inline-start: 0;
   width: 3px;
   background: var(--accent);
   border-radius: 0 3px 3px 0;
   box-shadow: 0 0 12px var(--accent);
 }
+.side-lang {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+}
 .side-foot {
-  margin: auto 0 0;
+  margin: 14px 0 0;
   font-size: 11.5px;
   line-height: 1.6;
 }
@@ -229,7 +234,7 @@ h2 {
   position: absolute;
   z-index: 20;
   bottom: calc(100% + 10px);
-  left: -10px;
+  inset-inline-start: -10px;
   width: 280px;
   padding: 11px 13px;
   color: var(--text);
@@ -239,7 +244,7 @@ h2 {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
   font: 400 12px/1.55 var(--font);
   letter-spacing: 0.01em;
-  text-align: left;
+  text-align: start;
   text-transform: none;
   white-space: normal;
   opacity: 0;
@@ -372,7 +377,7 @@ code {
   word-break: break-word;
 }
 .badge {
-  margin-left: 8px;
+  margin-inline-start: 8px;
   padding: 1px 7px;
   color: var(--muted);
   background: var(--surface-2);
@@ -419,7 +424,7 @@ code {
 }
 #override-warnings ul {
   margin: 0;
-  padding-left: 18px;
+  padding-inline-start: 18px;
 }
 
 /* ---- narrow windows: the sidebar becomes a top bar ---- */
@@ -436,7 +441,7 @@ code {
     height: auto;
     padding: 12px 16px;
     overflow-x: auto;
-    border-right: 0;
+    border-inline-end: 0;
     border-bottom: 1px solid var(--border);
   }
   #nav {

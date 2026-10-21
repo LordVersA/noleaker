@@ -1,3 +1,4 @@
+import { initI18n, LANGUAGES_UI, UI_LANG_KEY, uiLang } from '../shared/i18n';
 import { removeProfile, upsertProfile } from '../shared/profiles';
 import type { IranListMeta } from '../shared/iranlist';
 import { parseDomainLines } from '../shared/domains';
@@ -468,3 +469,11 @@ chrome.storage.onChanged.addListener((changes) => {
   if (changes[LOG_KEY]) void renderLog();
 });
 void renderLog();
+void initI18n();
+
+const langSelect = $<HTMLSelectElement>('ui-lang');
+for (const [code, name] of Object.entries(LANGUAGES_UI)) langSelect.add(new Option(name, code));
+void uiLang().then((lang) => (langSelect.value = lang));
+langSelect.addEventListener('change', () => {
+  void chrome.storage.local.set({ [UI_LANG_KEY]: langSelect.value }).then(() => location.reload());
+});

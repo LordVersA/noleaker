@@ -94,5 +94,5 @@ li[data-status='pending'] .dot {
   font-size: 12px;
 }
 .fix a {
-  margin-left: 6px;
+  margin-inline-start: 6px;
 }

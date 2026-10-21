@@ -185,7 +185,7 @@ footer {
   padding: 6px 8px;
   line-height: 1.4;
   background: rgba(255, 92, 108, 0.06);
-  border-left: 2px solid var(--danger);
+  border-inline-start: 2px solid var(--danger);
   border-radius: 6px;
 }
 .detail b {
