@@ -3,7 +3,7 @@ import { createContext, runInContext } from 'node:vm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { analyzeAudit, auditGate } from '../src/audit/analyze';
 import type { AuditObservation } from '../src/audit/collect';
-import { handleStaleReport, trackNavigation } from '../src/background/stale';
+import { forgetTab, handleStaleReport, trackNavigation } from '../src/background/stale';
 import { encodeGroups, isDirectHost } from '../src/shared/iranlist';
 import { SHIELD_DEFAULTS } from '../src/shared/shields';
 import {
@@ -156,6 +156,20 @@ describe('handleStaleReport (service worker)', () => {
     expect(r).toEqual({ reloaded: true, reason: 'reload' });
     expect(reloads).toEqual([{ tabId: 7, bypassCache: false }]);
     expect(notes()[7]).toMatchObject({ outcome: 'reloaded', url: 'https://news.example.com/a' });
+  });
+  it('closing a tab forgets its reloads, and tabs navigating at once keep their entries', async () => {
+    await handleStaleReport(report(), sender(7));
+    await handleStaleReport(report(), sender(8));
+    await forgetTab(7);
+    expect(Object.keys(session.tabReloads as object)).toEqual(['8|https://news.example.com/a']);
+    const nav = (tabId: number) => ({
+      tabId,
+      frameId: 0,
+      url: 'https://a.com/',
+      transitionType: 'link',
+    });
+    await Promise.all([trackNavigation(nav(1)), trackNavigation(nav(2))]);
+    expect(Object.keys(session.tabNavs as object)).toEqual(['1', '2']);
   });
   it('hard-reloads a Service Worker page', async () => {
     await handleStaleReport(report({ serviceWorker: true }), sender());
