@@ -60,7 +60,8 @@ let url = '';
 let driver: WebDriver;
 
 async function launch(): Promise<WebDriver> {
-  const options = new chrome.Options().addArguments(
+  const options = new chrome.Options();
+  options.addArguments(
     '--headless=new',
     `--user-data-dir=${mkdtempSync(join(tmpdir(), 'noleaker-chrome-'))}`,
     `--load-extension=${DIST}`,
