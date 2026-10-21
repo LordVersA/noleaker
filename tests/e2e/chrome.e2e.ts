@@ -38,12 +38,24 @@ try {
 } catch { finish(); }
 </script>`;
 
+// A page that fakes the bridge's handshake to learn the private event name, then sends its own
+// config. It must never get the name.
+const FORGE = `<!doctype html><title>forge</title><script>
+let n = null;
+addEventListener('__nl__', (e) => { try { const h = JSON.parse(e.detail); if (h.k === 'main') n = h.n; } catch {} });
+dispatchEvent(new CustomEvent('__nl__', { detail: '{"k":"bridge"}' }));
+if (n) dispatchEvent(new CustomEvent(n, { detail: JSON.stringify({ prelude: null, config: {
+  active: true, timezone: 'Pacific/Kiritimati', locale: 'en-US', languages: ['en-US'], shields: { timezone: true } } }) }));
+window.result = { name: n, zone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+document.title = 'done';
+</script>`;
+
 function server(body: string) {
   const s = { hits: 0, server: null as unknown as Server };
-  s.server = createServer((_req, res) => {
+  s.server = createServer((req, res) => {
     s.hits++;
     res.setHeader('content-type', 'text/html');
-    res.end(body);
+    res.end(req.url?.startsWith('/forge') ? FORGE : body);
   });
   return s;
 }
@@ -144,6 +156,15 @@ after(async () => {
   await driver?.quit().catch(() => undefined);
   for (const s of [direct.server, proxied.server, socks]) s?.close();
   for (const s of sockets) s.destroy();
+});
+
+test('a page cannot learn the private event name or forge a config', async () => {
+  await driver.get(`${url}forge`);
+  const result = await driver.executeScript<{ name: string | null; zone: string }>(
+    'return window.result;',
+  );
+  assert.equal(result.name, null);
+  assert.notEqual(result.zone, 'Pacific/Kiritimati');
 });
 
 test('WebRTC: no real-IP candidates', async () => {

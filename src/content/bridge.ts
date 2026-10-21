@@ -55,6 +55,10 @@ function onHello(e: Event): void {
   window.addEventListener(ackName(name), () => {
     acked = true;
   });
+  // The first message makes the MAIN-world script stop answering hellos. Send it now, before page
+  // scripts run: otherwise a page could fake a bridge hello and learn the name.
+  const empty: ConfigMessage = { config: null, prelude: null };
+  window.dispatchEvent(new CustomEvent(name, { detail: JSON.stringify(empty) }));
   if (configLoaded) push();
 }
 
