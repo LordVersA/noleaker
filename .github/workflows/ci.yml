@@ -77,5 +77,6 @@ jobs:
       - name: Install Chrome for Testing
         run: |
           npx -y @puppeteer/browsers@2.10.5 install chrome@dev --path "$RUNNER_TEMP/cft" | tail -1 | cut -d" " -f2- > cft.txt
+          npx -y @puppeteer/browsers@2.10.5 install chromedriver@dev --path "$RUNNER_TEMP/cft" | tail -1 | cut -d" " -f2- > driver.txt
       - name: E2E leak scenarios
-        run: CHROME_BIN="$(cat cft.txt)" npm run e2e:chrome
+        run: CHROME_BIN="$(cat cft.txt)" CHROMEDRIVER_BIN="$(cat driver.txt)" npm run e2e:chrome

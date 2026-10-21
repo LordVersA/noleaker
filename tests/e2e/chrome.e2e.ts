@@ -2,7 +2,8 @@
 // Run: npm run build:chrome && npm run e2e:chrome
 //
 // Branded Chrome (stable, Dev) ignores --load-extension, so selenium downloads Chrome for Testing
-// (Dev channel), which still honours it. CHROME_BIN points at another unbranded build instead.
+// (Dev channel), which still honours it. CHROME_BIN points at another unbranded build instead,
+// and CHROMEDRIVER_BIN at its matching driver.
 // Leak detection: --host-resolver-rules maps fixture.e2e to 127.0.0.1, so a request that goes
 // direct reaches the `direct` server. Through the SOCKS server the same host reaches `proxied`.
 import { createServer, type Server } from 'node:http';
@@ -98,7 +99,11 @@ async function launch(): Promise<WebDriver> {
     process.env.SE_FORCE_BROWSER_DOWNLOAD ??= 'true';
     process.env.SE_BROWSER_VERSION ??= 'dev';
   }
-  const d = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
+  const builder = new Builder().forBrowser('chrome').setChromeOptions(options);
+  // CI runners put an older chromedriver on PATH; use the one that matches CHROME_BIN.
+  if (process.env.CHROMEDRIVER_BIN)
+    builder.setChromeService(new chrome.ServiceBuilder(process.env.CHROMEDRIVER_BIN));
+  const d = await builder.build();
   const end = Date.now() + 15_000;
   while (!(ID = extensionId()) && Date.now() < end) await new Promise((r) => setTimeout(r, 250));
   if (!ID) {
