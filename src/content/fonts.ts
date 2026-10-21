@@ -65,9 +65,15 @@ export function installFonts(g: any): { setConfig(config: SpoofConfig | null): v
   };
 
   const styleProto: any = g.CSSStyleDeclaration?.prototype;
+  // Newer engines define the property accessors on a subclass (Chrome: CSSStyleProperties,
+  // Firefox: CSS2Properties), not on CSSStyleDeclaration itself.
+  const propsProto: any =
+    [g.CSSStyleProperties, g.CSS2Properties, g.CSSStyleDeclaration]
+      .map((c) => c?.prototype)
+      .find((p) => p && Object.getOwnPropertyDescriptor(p, 'fontFamily')) ?? styleProto;
   if (styleProto) {
     patchSetter(
-      styleProto,
+      propsProto,
       'fontFamily',
       (orig) =>
         function (this: any, v: unknown) {
@@ -75,7 +81,7 @@ export function installFonts(g: any): { setConfig(config: SpoofConfig | null): v
         },
     );
     patchSetter(
-      styleProto,
+      propsProto,
       'font',
       (orig) =>
         function (this: any, v: unknown) {

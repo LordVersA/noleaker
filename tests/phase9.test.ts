@@ -87,6 +87,25 @@ describe('fonts shield', () => {
     expect(ff('"IRANSans", monospace')).toBe('monospace');
     expect(ff('Vazir, "B-Nazanin", Arial')).toBe('Arial');
   });
+  it('patches the accessor where newer Chrome defines it (CSSStyleProperties)', () => {
+    // Accessors live on a subclass, as in Chrome 2025+.
+    const e = newContext(
+      setup +
+        `class CSSStyleProperties extends CSSStyleDeclaration {}
+        for (const k of ['fontFamily', 'font']) {
+          Object.defineProperty(CSSStyleProperties.prototype, k,
+            Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, k));
+          delete CSSStyleDeclaration.prototype[k];
+        }
+        globalThis.CSSStyleProperties = CSSStyleProperties;`,
+    );
+    installFonts(e.g).setConfig(config());
+    expect(
+      e.run(
+        `(() => { const s = new CSSStyleProperties(); s.fontFamily = 'Vazirmatn, serif'; return s.fontFamily; })()`,
+      ),
+    ).toBe('serif');
+  });
   it('leaves other stacks byte-for-byte unchanged', () => {
     expect(ff('Arial,   Helvetica , sans-serif')).toBe('Arial,   Helvetica , sans-serif');
   });
