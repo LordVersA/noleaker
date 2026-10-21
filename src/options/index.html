@@ -69,42 +69,6 @@
       <main>
         <p id="private-note" class="warning" hidden></p>
         <p id="rfp-note" class="warning" hidden></p>
-        <section class="card">
-          <h2>Privacy mode</h2>
-          <label
-            >Routing
-            <select id="routing-mode">
-              <option value="strict">Strict privacy</option>
-              <option value="compatibility">Compatibility</option>
-            </select></label
-          >
-          <p class="muted">
-            Strict privacy proxies public destinations, blocks local destinations and removes
-            automatic captcha exemptions. Compatibility allows Iran-list, custom and local direct
-            connections, including during proxy failure.
-          </p>
-          <label
-            ><input type="checkbox" id="list-updates" /> Download routing-list candidates in
-            compatibility mode</label
-          >
-          <p class="muted">
-            Updates change which sites connect directly. Their checksum does not independently
-            authenticate the publisher. Each candidate requires manual review and approval. Off by
-            default.
-          </p>
-          <h3>Separate your browsing identity</h3>
-          <p class="muted">
-            Use a dedicated browser profile for private browsing. Switching proxies does not clear
-            cookies, logins, IndexedDB or service workers. This extension does not isolate accounts
-            or erase site data.
-          </p>
-          <p class="muted">
-            Startup scripts, new iframe realms and unsupported workers can still reveal native
-            values. Private (incognito) windows are protected only when the extension is allowed to
-            run there. Use an OS firewall or VPN kill switch for enforcement outside browser
-            controls.
-          </p>
-        </section>
         <section class="group" id="proxies">
           <header class="group-head">
             <span class="eyebrow">01</span>
@@ -277,10 +241,64 @@
             <span class="eyebrow">04</span>
             <h2 class="group-title">Protection and sites</h2>
             <p class="muted">
-              Hide the extension and decide which sites skip spoofing or the proxy.
+              Choose how traffic is routed, hide the extension, and decide which sites skip spoofing
+              or the proxy.
             </p>
           </header>
           <div class="cards">
+            <section class="card span-2" id="privacy-card">
+              <h2>Privacy mode</h2>
+              <p class="muted note">
+                Use a dedicated browser profile: switching proxies does not clear cookies, logins or
+                site data.
+              </p>
+              <label class="field">
+                <span class="label">Routing</span>
+                <select id="routing-mode">
+                  <option value="strict">Strict privacy (recommended)</option>
+                  <option value="compatibility">Compatibility</option>
+                </select>
+                <span class="muted current"
+                  >Strict proxies every public site and blocks local addresses. Compatibility lets
+                  the Direct list and local addresses connect directly, even if the proxy
+                  fails.</span
+                >
+              </label>
+              <label class="fp-row">
+                <div>
+                  <div class="fp-name">
+                    Download list updates
+                    <button
+                      type="button"
+                      class="hint"
+                      aria-label="More info"
+                      data-tip="Updates change which sites connect directly. Their checksum does not prove who published them, so each one waits for your review and approval."
+                    >
+                      ?
+                    </button>
+                  </div>
+                  <div class="muted">Compatibility mode only. Off by default.</div>
+                </div>
+                <input type="checkbox" id="list-updates" class="switch" />
+              </label>
+              <div class="fp-row">
+                <div>
+                  <div class="fp-name">
+                    Limits
+                    <button
+                      type="button"
+                      class="hint"
+                      aria-label="More info"
+                      data-tip="Startup scripts, new iframe realms and unsupported workers can still reveal native values. Private windows are protected only if the extension may run there. Use an OS firewall or VPN kill switch for enforcement outside the browser."
+                    >
+                      ?
+                    </button>
+                  </div>
+                  <div class="muted">What browser-level protection cannot cover.</div>
+                </div>
+              </div>
+            </section>
+
             <section class="card" id="stealth-card">
               <h2>Stealth mode</h2>
               <p class="muted note">
