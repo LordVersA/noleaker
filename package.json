@@ -23,7 +23,8 @@
     "icons": "node scripts/make-icons.mjs",
     "package": "npm run build && node scripts/package.mjs",
     "release": "scripts/release.sh",
-    "e2e:firefox": "node --test tests/e2e/firefox.e2e.ts"
+    "e2e:firefox": "node --test tests/e2e/firefox.e2e.ts",
+    "e2e:chrome": "node --test tests/e2e/chrome.e2e.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
